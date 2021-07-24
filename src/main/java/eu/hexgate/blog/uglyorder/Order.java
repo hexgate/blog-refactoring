@@ -4,10 +4,7 @@ import eu.hexgate.blog.uglyorder.dto.OrderDto;
 import eu.hexgate.blog.uglyorder.dto.OrderPositionDto;
 import eu.hexgate.blog.uglyorder.user.User;
 
-import javax.persistence.Entity;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.math.BigDecimal;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -16,6 +13,7 @@ import java.util.stream.Collectors;
 @Table(name = "ORDER")
 public class Order {
 
+    @Id
     private String id;
 
     @ManyToOne

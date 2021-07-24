@@ -3,6 +3,7 @@ package eu.hexgate.blog.uglyorder.product;
 import eu.hexgate.blog.uglyorder.dto.ProductDto;
 
 import javax.persistence.Entity;
+import javax.persistence.Id;
 import javax.persistence.Table;
 import java.math.BigDecimal;
 
@@ -10,6 +11,7 @@ import java.math.BigDecimal;
 @Table(name = "PRODUCT")
 public class Product {
 
+    @Id
     private String id;
 
     private String name;

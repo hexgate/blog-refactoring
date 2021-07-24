@@ -9,7 +9,6 @@ import eu.hexgate.blog.uglyorder.product.Product;
 import eu.hexgate.blog.uglyorder.product.ProductService;
 import eu.hexgate.blog.uglyorder.user.User;
 import eu.hexgate.blog.uglyorder.user.UserService;
-import org.aspectj.weaver.ast.Or;
 import org.springframework.stereotype.Service;
 
 import java.util.Set;
@@ -61,7 +60,11 @@ public class OrderService {
         return saveAndGetDto(order);
     }
 
-
+    private OrderDto confirm(String orderId) {
+        final Order order = findOrder(orderId);
+        order.confirm(taxService.gerCurrentTax(), shippingService.getCurrentShippingPrice());
+        return saveAndGetDto(order);
+    }
 
     public Order findOrder(String id) {
         return orderRepository.findById(id)
