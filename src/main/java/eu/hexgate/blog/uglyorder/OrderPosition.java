@@ -3,20 +3,18 @@ package eu.hexgate.blog.uglyorder;
 import eu.hexgate.blog.uglyorder.dto.OrderPositionDto;
 import eu.hexgate.blog.uglyorder.product.Product;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.util.UUID;
 
 @Entity
-@Table(name = "ORDER_LINE")
+@Table(name = "ORDER_POSITION")
 public class OrderPosition {
 
     @Id
     private String id;
 
     @ManyToOne
+    @JoinColumn(name = "PRODUCT_ID")
     private Product product;
 
     private int quantity;

@@ -17,6 +17,7 @@ public class Order {
     private String id;
 
     @ManyToOne
+    @JoinColumn(name = "OWNER_ID")
     private User owner;
 
     private OrderStatus status;
