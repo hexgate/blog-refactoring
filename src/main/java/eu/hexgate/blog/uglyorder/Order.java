@@ -10,7 +10,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Entity
-@Table(name = "ORDER")
+@Table(name = "ORDER_DATA")
 public class Order {
 
     @Id
@@ -24,14 +24,20 @@ public class Order {
 
     private BigDecimal confirmedTotalPrice;
 
-    @OneToMany
+    @OneToMany(cascade = CascadeType.ALL)
+    @JoinColumn(name = "ORDER_ID")
     private Set<OrderPosition> positions;
+
 
     public Order(String id, User owner, OrderStatus status, Set<OrderPosition> positions) {
         this.id = id;
         this.owner = owner;
         this.status = status;
         this.positions = positions;
+    }
+
+    private Order() {
+        // jpa only
     }
 
     public void updateProductLines(Set<OrderPosition> positions) {

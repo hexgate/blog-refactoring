@@ -25,12 +25,8 @@ public class OrderPosition {
         this.quantity = quantity;
     }
 
-    public void addQuantity(int quantity) {
-        this.quantity += quantity;
-    }
-
-    public String getProductId() {
-        return product.getId();
+    private OrderPosition() {
+        // jpa only
     }
 
     public OrderPositionDto dto() {

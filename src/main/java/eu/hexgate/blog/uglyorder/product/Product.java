@@ -24,6 +24,10 @@ public class Product {
         this.price = price;
     }
 
+    private Product() {
+        // jpa only
+    }
+
     public String getId() {
         return id;
     }
