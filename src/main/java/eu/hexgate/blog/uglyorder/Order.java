@@ -46,7 +46,7 @@ public class Order {
             throw new OrderStatusException(id, "Your order has already been confirmed.", status);
         }
 
-        final boolean anyChanges = anyChanges(positions, this.positions);
+        final boolean anyChanges = OrderPositionUtils.anyChanges(positions, this.positions);
         this.positions.clear();
         this.positions.addAll(positions);
         if (OrderStatus.ACCEPTED == status && anyChanges) {
@@ -102,9 +102,5 @@ public class Order {
 
     private BigDecimal calculateTotalPrice(BigDecimal tax, BigDecimal shippingPrice) {
         return calculateBasePrice().multiply(BigDecimal.ONE.add(tax)).add(shippingPrice);
-    }
-
-    private boolean anyChanges(Set<OrderPosition> before, Set<OrderPosition> after) {
-        return before.equals(after);
     }
 }

@@ -1,19 +1,19 @@
 package eu.hexgate.blog.uglyorder.forms;
 
-import java.util.Set;
+import java.util.List;
 
 public class OrderForm {
 
-    private Set<OrderPositionForm> positions;
+    private List<OrderPositionForm> positions;
 
-    public OrderForm(Set<OrderPositionForm> positions) {
+    public OrderForm(List<OrderPositionForm> positions) {
         this.positions = positions;
     }
 
     public OrderForm() {
     }
 
-    public Set<OrderPositionForm> getPositions() {
+    public List<OrderPositionForm> getPositions() {
         return positions;
     }
 }

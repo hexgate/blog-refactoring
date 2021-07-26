@@ -12,8 +12,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
-import java.math.BigDecimal;
-import java.util.Set;
+import java.util.List;
 
 import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -110,7 +109,7 @@ public class OrderTest {
 
         final OrderDto result = objectMapper.readValue(createdOrder, OrderDto.class);
 
-        updatePositions(result.getId())
+        updatePositions(result.getId(), updatedOrderForm())
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", notNullValue()))
@@ -132,6 +131,61 @@ public class OrderTest {
         ;
     }
 
+    @Test
+    public void shouldAcceptOrder() throws Exception {
+        final String createdOrder = postNewOrder(STANDARD_USER_ID)
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        final OrderDto result = objectMapper.readValue(createdOrder, OrderDto.class);
+
+        mockMvc.perform(
+                patch(String.format("/orders/%s/accept", result.getId()))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id", is(result.getId())))
+                .andExpect(jsonPath("$.status", is("ACCEPTED")));
+    }
+
+    @Test
+    public void shouldNotChangeStatusFromAcceptedToDraftIfProductsAreTheSame() throws Exception {
+        final String createdOrder = postNewOrder(STANDARD_USER_ID)
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        final OrderDto result = objectMapper.readValue(createdOrder, OrderDto.class);
+
+        mockMvc.perform(
+                patch(String.format("/orders/%s/accept", result.getId()))
+                        .contentType(MediaType.APPLICATION_JSON));
+
+        updatePositions(result.getId(), splittedSampleOrderForm())
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", is(result.getId())))
+                .andExpect(jsonPath("$.status", is("ACCEPTED")));
+    }
+
+    @Test
+    public void shouldChangeStatusFromAcceptedToDraftIfProductsAreNotTheSame() throws Exception {
+        final String createdOrder = postNewOrder(STANDARD_USER_ID)
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        final OrderDto result = objectMapper.readValue(createdOrder, OrderDto.class);
+
+        mockMvc.perform(
+                patch(String.format("/orders/%s/accept", result.getId()))
+                        .contentType(MediaType.APPLICATION_JSON));
+
+        updatePositions(result.getId(), updatedOrderForm())
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", is(result.getId())))
+                .andExpect(jsonPath("$.status", is("DRAFT")));
+    }
 
     private ResultActions postNewOrder(String userId) throws Exception {
         final OrderForm orderForm = sampleOrderForm();
@@ -144,9 +198,7 @@ public class OrderTest {
         );
     }
 
-    private ResultActions updatePositions(String orderId) throws Exception {
-        final OrderForm orderForm = updatedOrderForm();
-
+    private ResultActions updatePositions(String orderId, OrderForm orderForm) throws Exception {
         return mockMvc.perform(
                 patch(String.format("/orders/%s/update-positions", orderId))
                         .content(objectMapper.writeValueAsString(orderForm))
@@ -162,12 +214,23 @@ public class OrderTest {
     }
 
     private OrderForm sampleOrderForm() {
-        return new OrderForm(Set.of(new OrderPositionForm("1", 2), new OrderPositionForm("2", 1)));
+        return new OrderForm(List.of(
+                new OrderPositionForm("1", 2),
+                new OrderPositionForm("2", 1)));
+    }
+
+    private OrderForm splittedSampleOrderForm() {
+        return new OrderForm(List.of(
+                new OrderPositionForm("1", 1),
+                new OrderPositionForm("2", 1),
+                new OrderPositionForm("1", 1))
+        );
     }
 
     private OrderForm updatedOrderForm() {
-        return new OrderForm(Set.of(new OrderPositionForm("3", 5), new OrderPositionForm("4", 3)));
+        return new OrderForm(List.of(
+                new OrderPositionForm("3", 5),
+                new OrderPositionForm("4", 3))
+        );
     }
-
-
 }
