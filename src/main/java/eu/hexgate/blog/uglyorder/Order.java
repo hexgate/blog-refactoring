@@ -6,6 +6,7 @@ import eu.hexgate.blog.uglyorder.user.User;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
+import java.util.Comparator;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -24,7 +25,7 @@ public class Order {
 
     private BigDecimal confirmedTotalPrice;
 
-    @OneToMany(cascade = CascadeType.ALL)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "ORDER_ID")
     private Set<OrderPosition> positions;
 
@@ -46,8 +47,8 @@ public class Order {
         }
 
         final boolean anyChanges = anyChanges(positions, this.positions);
-        this.positions = positions;
-
+        this.positions.clear();
+        this.positions.addAll(positions);
         if (OrderStatus.ACCEPTED == status && anyChanges) {
             status = OrderStatus.DRAFT;
         }
@@ -78,23 +79,6 @@ public class Order {
         status = OrderStatus.CONFIRMED;
     }
 
-    private BigDecimal calculateBasePrice() {
-        return positions.stream()
-                .map(OrderPosition::dto)
-                .map(OrderPositionDto::getTotal)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-    }
-
-    private BigDecimal calculateTotalPrice(BigDecimal tax, BigDecimal shippingPrice) {
-        return calculateBasePrice().multiply(BigDecimal.ONE.add(tax)).add(shippingPrice);
-    }
-
-    private boolean anyChanges(Set<OrderPosition> before, Set<OrderPosition> after) {
-        // todo
-        return false;
-    }
-
     public OrderDto dto(BigDecimal tax, BigDecimal shippingPrice) {
         return new OrderDto(
                 id,
@@ -104,7 +88,23 @@ public class Order {
                 confirmedTotalPrice,
                 positions.stream()
                         .map(OrderPosition::dto)
-                        .collect(Collectors.toSet())
+                        .sorted(Comparator.comparing(o -> o.getProduct().getName()))
+                        .collect(Collectors.toList())
         );
+    }
+
+    private BigDecimal calculateBasePrice() {
+        return positions.stream()
+                .map(OrderPosition::dto)
+                .map(OrderPositionDto::getTotal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    private BigDecimal calculateTotalPrice(BigDecimal tax, BigDecimal shippingPrice) {
+        return calculateBasePrice().multiply(BigDecimal.ONE.add(tax)).add(shippingPrice);
+    }
+
+    private boolean anyChanges(Set<OrderPosition> before, Set<OrderPosition> after) {
+        return before.equals(after);
     }
 }

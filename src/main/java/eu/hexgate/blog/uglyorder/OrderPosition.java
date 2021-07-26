@@ -4,6 +4,7 @@ import eu.hexgate.blog.uglyorder.dto.OrderPositionDto;
 import eu.hexgate.blog.uglyorder.product.Product;
 
 import javax.persistence.*;
+import java.util.Objects;
 import java.util.UUID;
 
 @Entity
@@ -31,5 +32,18 @@ public class OrderPosition {
 
     public OrderPositionDto dto() {
         return new OrderPositionDto(product.dto(), quantity);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        OrderPosition that = (OrderPosition) o;
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }

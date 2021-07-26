@@ -10,6 +10,9 @@ public class OrderForm {
         this.positions = positions;
     }
 
+    public OrderForm() {
+    }
+
     public Set<OrderPositionForm> getPositions() {
         return positions;
     }

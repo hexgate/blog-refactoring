@@ -1,9 +1,11 @@
 package eu.hexgate.blog.uglyorder.dto;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import eu.hexgate.blog.MoneySerializer;
 import eu.hexgate.blog.uglyorder.OrderStatus;
 
 import java.math.BigDecimal;
-import java.util.Set;
+import java.util.List;
 
 public class OrderDto {
 
@@ -11,21 +13,27 @@ public class OrderDto {
 
     private OrderStatus status;
 
+    @JsonSerialize(using = MoneySerializer.class)
     private BigDecimal basePrice;
 
+    @JsonSerialize(using = MoneySerializer.class)
     private BigDecimal estimateTotalPrice;
 
+    @JsonSerialize(using = MoneySerializer.class)
     private BigDecimal confirmedTotalPrice;
 
-    private Set<OrderPositionDto> positions;
+    private List<OrderPositionDto> positions;
 
-    public OrderDto(String id, OrderStatus status, BigDecimal basePrice, BigDecimal estimateTotalPrice, BigDecimal confirmedTotalPrice, Set<OrderPositionDto> positions) {
+    public OrderDto(String id, OrderStatus status, BigDecimal basePrice, BigDecimal estimateTotalPrice, BigDecimal confirmedTotalPrice, List<OrderPositionDto> positions) {
         this.id = id;
         this.status = status;
         this.basePrice = basePrice;
         this.estimateTotalPrice = estimateTotalPrice;
         this.confirmedTotalPrice = confirmedTotalPrice;
         this.positions = positions;
+    }
+
+    public OrderDto() {
     }
 
     public String getId() {
@@ -48,7 +56,7 @@ public class OrderDto {
         return confirmedTotalPrice;
     }
 
-    public Set<OrderPositionDto> getPositions() {
+    public List<OrderPositionDto> getPositions() {
         return positions;
     }
 }

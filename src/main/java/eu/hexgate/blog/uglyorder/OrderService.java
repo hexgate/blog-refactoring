@@ -17,6 +17,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional
 public class OrderService {
 
     private final OrderRepository orderRepository;
@@ -42,7 +43,6 @@ public class OrderService {
         return saveAndGetDto(order);
     }
 
-    @Transactional
     public OrderDto updateOrder(String orderId, OrderForm orderForm) {
         final Order order = findOrder(orderId);
         final Set<OrderPosition> mergedOrderPositions = mergeOrderPositions(orderForm);
@@ -62,7 +62,7 @@ public class OrderService {
         return saveAndGetDto(order);
     }
 
-    private OrderDto confirm(String orderId) {
+    public OrderDto confirm(String orderId) {
         final Order order = findOrder(orderId);
         order.confirm(taxService.gerCurrentTax(), shippingService.getCurrentShippingPrice());
         return saveAndGetDto(order);

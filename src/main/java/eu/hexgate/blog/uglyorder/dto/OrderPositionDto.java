@@ -1,21 +1,30 @@
 package eu.hexgate.blog.uglyorder.dto;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import eu.hexgate.blog.MoneySerializer;
+
 import java.math.BigDecimal;
 
 public class OrderPositionDto {
 
-    private ProductDto productDto;
+    private ProductDto product;
+
     private int quantity;
+
+    @JsonSerialize(using = MoneySerializer.class)
     private BigDecimal total;
 
-    public OrderPositionDto(ProductDto productDto, int quantity) {
-        this.productDto = productDto;
+    public OrderPositionDto(ProductDto product, int quantity) {
+        this.product = product;
         this.quantity = quantity;
-        this.total = productDto.getPrice().multiply(new BigDecimal(quantity));
+        this.total = product.getPrice().multiply(new BigDecimal(quantity));
     }
 
-    public ProductDto getProductDto() {
-        return productDto;
+    public OrderPositionDto() {
+    }
+
+    public ProductDto getProduct() {
+        return product;
     }
 
     public int getQuantity() {
