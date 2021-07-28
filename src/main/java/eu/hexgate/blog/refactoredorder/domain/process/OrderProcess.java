@@ -63,4 +63,8 @@ public class OrderProcess {
         return stepId;
     }
 
+    public CorrelatedOrderId getCorrelatedOrderId() {
+        return correlatedOrderId;
+    }
+
 }

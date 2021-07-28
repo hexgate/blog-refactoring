@@ -1,14 +1,15 @@
 package eu.hexgate.blog.uglyorder.order;
 
+import eu.hexgate.blog.refactoredorder.domain.CorrelatedOrderId;
 import eu.hexgate.blog.refactoredorder.domain.process.OrderStatus;
 
 public class OrderStatusException extends RuntimeException {
-    private String orderId;
-    private OrderStatus status;
+    private final String orderId;
+    private final OrderStatus status;
 
-    public OrderStatusException(String orderId, String message, OrderStatus status) {
+    public OrderStatusException(CorrelatedOrderId correlatedOrderId, String message, OrderStatus status) {
         super(message);
-        this.orderId = orderId;
+        this.orderId = correlatedOrderId.getId();
         this.status = status;
     }
 

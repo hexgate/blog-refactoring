@@ -1,6 +1,6 @@
 package eu.hexgate.blog.refactoredorder.usecase.updateorderpositions;
 
-import eu.hexgate.blog.refactoredorder.domain.AggregateId;
+import eu.hexgate.blog.refactoredorder.domain.CorrelatedOrderId;
 import eu.hexgate.blog.refactoredorder.domain.MergedOrderPositions;
 import eu.hexgate.blog.refactoredorder.domain.accepted.AcceptedOrder;
 import eu.hexgate.blog.refactoredorder.domain.accepted.AcceptedOrderRepository;
@@ -36,21 +36,22 @@ public class UpdateOrderPositionsUseCase implements UseCase<UpdateOrderPositions
     @Override
     public String execute(UpdateOrderPositionsCommand updateOrderPositionsCommand) {
         final MergedOrderPositions mergedOrderPositions = MergedOrderPositions.of(updateOrderPositionsCommand.getPositions());
-        final OrderProcess orderProcess = orderProcessService.findByCorrelatedId(AggregateId.fromString(updateOrderPositionsCommand.getOrderId()));
+        final CorrelatedOrderId orderId = CorrelatedOrderId.fromString(updateOrderPositionsCommand.getOrderId());
+        final OrderProcess orderProcess = orderProcessService.findByCorrelatedId(orderId);
 
         return orderProcess.route(
-                () -> updateForDraft(orderProcess, updateOrderPositionsCommand.getOrderId(), mergedOrderPositions),
-                () -> updateForAccepted(orderProcess, updateOrderPositionsCommand.getOrderId(), mergedOrderPositions),
-                () -> updateForVip(orderProcess, updateOrderPositionsCommand.getOrderId(), mergedOrderPositions),
+                () -> updateForDraft(orderProcess, mergedOrderPositions),
+                () -> updateForAccepted(orderProcess, mergedOrderPositions),
+                () -> updateForVip(orderProcess, mergedOrderPositions),
                 () -> {
-                    throw new OrderStatusException(updateOrderPositionsCommand.getOrderId(), "Your order has already been confirmed.", OrderStatus.CONFIRMED);
+                    throw new OrderStatusException(orderId, "Your order has already been confirmed.", OrderStatus.CONFIRMED);
                 }
         );
     }
 
-    private String updateForDraft(OrderProcess orderProcess, String orderId, MergedOrderPositions mergedOrderPositions) {
+    private String updateForDraft(OrderProcess orderProcess, MergedOrderPositions mergedOrderPositions) {
         final DraftOrder draftOrder = draftOrderRepository.findById(orderProcess.getStepId())
-                .orElseThrow(() -> new OrderNotFoundException(orderId));
+                .orElseThrow(() -> new OrderNotFoundException(orderProcess.getCorrelatedOrderId()));
 
         final DraftOrder newDraftOrder = draftOrder.updateProductLines(mergedOrderPositions);
         final DraftOrder savedNewDraftOrder = draftOrderRepository.save(newDraftOrder);
@@ -58,9 +59,9 @@ public class UpdateOrderPositionsUseCase implements UseCase<UpdateOrderPositions
         return orderProcessService.incrementStepAndSave(orderProcess, savedNewDraftOrder);
     }
 
-    private String updateForAccepted(OrderProcess orderProcess, String orderId, MergedOrderPositions mergedOrderPositions) {
+    private String updateForAccepted(OrderProcess orderProcess, MergedOrderPositions mergedOrderPositions) {
         final AcceptedOrder acceptedOrder = acceptedOrderRepository.findById(orderProcess.getStepId())
-                .orElseThrow(() -> new OrderNotFoundException(orderId));
+                .orElseThrow(() -> new OrderNotFoundException(orderProcess.getCorrelatedOrderId()));
 
         return acceptedOrder.updateProductLines(mergedOrderPositions)
                 .route(
@@ -73,9 +74,9 @@ public class UpdateOrderPositionsUseCase implements UseCase<UpdateOrderPositions
                         });
     }
 
-    private String updateForVip(OrderProcess orderProcess, String orderId, MergedOrderPositions mergedOrderPositions) {
+    private String updateForVip(OrderProcess orderProcess, MergedOrderPositions mergedOrderPositions) {
         final VipOrder vipOrder = vipOrderRepository.findById(orderProcess.getStepId())
-                .orElseThrow(() -> new OrderNotFoundException(orderId));
+                .orElseThrow(() -> new OrderNotFoundException(orderProcess.getCorrelatedOrderId()));
 
         final VipOrder newVipOrder = vipOrder.updateProductLines(mergedOrderPositions);
         final VipOrder savedNewVipOrder = vipOrderRepository.save(newVipOrder);

@@ -1,6 +1,6 @@
 package eu.hexgate.blog.refactoredorder.domain.process;
 
-import eu.hexgate.blog.refactoredorder.domain.AggregateId;
+import eu.hexgate.blog.refactoredorder.domain.CorrelatedOrderId;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -22,7 +22,7 @@ public class OrderProcessService {
         return orderProcessStep.getCorrelatedOrderId().getId();
     }
 
-    public OrderProcess findByCorrelatedId(AggregateId orderId) {
+    public OrderProcess findByCorrelatedId(CorrelatedOrderId orderId) {
         return orderProcessRepository.findByCorrelatedId(orderId);
     }
 }
