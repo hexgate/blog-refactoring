@@ -11,8 +11,9 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
-    public User getUser(String userId) {
+    public boolean isVip(String userId) {
         return userRepository.findById(userId)
+                .map(User::isVip)
                 .orElseThrow(() -> new UserNotFoundException(userId));
     }
 }

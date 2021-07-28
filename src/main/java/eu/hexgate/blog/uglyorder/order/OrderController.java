@@ -1,5 +1,8 @@
 package eu.hexgate.blog.uglyorder.order;
 
+import eu.hexgate.blog.refactoredorder.usecase.UseCase;
+import eu.hexgate.blog.refactoredorder.usecase.createorder.CreateOrderCommand;
+import eu.hexgate.blog.refactoredorder.usecase.updateorderpositions.UpdateOrderPositionsCommand;
 import eu.hexgate.blog.uglyorder.dto.ErrorDto;
 import eu.hexgate.blog.uglyorder.dto.OrderDto;
 import eu.hexgate.blog.uglyorder.forms.OrderForm;
@@ -12,15 +15,19 @@ import java.net.URI;
 @RestController
 public class OrderController {
 
-    private final OrderService orderService;
+    private final UseCase<CreateOrderCommand, String> createOrderUseCase;
+    private final UseCase<UpdateOrderPositionsCommand, String> updateOrderPositionsUseCase;
 
-    public OrderController(OrderService orderService) {
-        this.orderService = orderService;
+    public OrderController(UseCase<CreateOrderCommand, String> createOrderUseCase, UseCase<UpdateOrderPositionsCommand, String> updateOrderPositionsUseCase) {
+        this.createOrderUseCase = createOrderUseCase;
+        this.updateOrderPositionsUseCase = updateOrderPositionsUseCase;
     }
 
     @PostMapping("/orders")
     ResponseEntity<OrderDto> createOrder(@RequestBody OrderForm orderForm, HttpServletRequest httpServletRequest) {
         final String userId = getCurrentUserId(httpServletRequest);
+        final String orderId = createOrderUseCase.execute(new CreateOrderCommand(userId, orderForm.getPositions()));
+
         final OrderDto order = orderService.createOrder(userId, orderForm);
         return ResponseEntity
                 .created(URI.create(String.format("/orders/%s", order.getId())))
@@ -34,6 +41,8 @@ public class OrderController {
 
     @PatchMapping("/orders/{id}/update-positions")
     ResponseEntity<OrderDto> updatePositions(@PathVariable String id, @RequestBody OrderForm orderForm) {
+        final String orderId = updateOrderPositionsUseCase.execute(new UpdateOrderPositionsCommand(id, orderForm.getPositions()));
+
         return ResponseEntity.ok(orderService.updateOrder(id, orderForm));
     }
 
