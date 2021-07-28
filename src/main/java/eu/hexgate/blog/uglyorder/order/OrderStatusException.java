@@ -1,10 +1,10 @@
-package eu.hexgate.blog.uglyorder;
+package eu.hexgate.blog.uglyorder.order;
 
 public class OrderStatusException extends RuntimeException {
     private String orderId;
     private OrderStatus status;
 
-    public OrderStatusException(String message, String orderId, OrderStatus status) {
+    public OrderStatusException(String orderId, String message, OrderStatus status) {
         super(message);
         this.orderId = orderId;
         this.status = status;

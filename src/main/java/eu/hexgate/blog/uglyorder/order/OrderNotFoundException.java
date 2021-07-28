@@ -1,4 +1,4 @@
-package eu.hexgate.blog.uglyorder;
+package eu.hexgate.blog.uglyorder.order;
 
 public class OrderNotFoundException extends RuntimeException {
 
@@ -7,5 +7,9 @@ public class OrderNotFoundException extends RuntimeException {
     public OrderNotFoundException(String orderId) {
         super("Order not found.");
         this.orderId = orderId;
+    }
+
+    public String getOrderId() {
+        return orderId;
     }
 }

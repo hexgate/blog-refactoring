@@ -1,4 +1,4 @@
-package eu.hexgate.blog.uglyorder;
+package eu.hexgate.blog.uglyorder.order;
 
 import eu.hexgate.blog.uglyorder.dto.OrderDto;
 import eu.hexgate.blog.uglyorder.dto.OrderPositionDto;

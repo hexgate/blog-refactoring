@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.hexgate.blog.uglyorder.dto.OrderDto;
 import eu.hexgate.blog.uglyorder.forms.OrderForm;
 import eu.hexgate.blog.uglyorder.forms.OrderPositionForm;
+import eu.hexgate.blog.uglyorder.order.OrderService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -71,17 +72,12 @@ public class OrderTest {
 
     @Test
     public void shouldFindCreatedOrder() throws Exception {
-        final String createdOrder = postNewOrder(VIP_USER_ID)
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
+        final String id = postNewOrderAngGetId(VIP_USER_ID);
 
-        final OrderDto result = objectMapper.readValue(createdOrder, OrderDto.class);
-
-        findOrder(result.getId())
+        findOrder(id)
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", is(result.getId())))
+                .andExpect(jsonPath("$.id", is(id)))
                 .andExpect(jsonPath("$.status", is("VIP")))
                 .andExpect(jsonPath("$.basePrice", is("800.00")))
                 .andExpect(jsonPath("$.estimateTotalPrice", is("975.00")))
@@ -102,14 +98,9 @@ public class OrderTest {
 
     @Test
     public void shouldUpdateProducts() throws Exception {
-        final String createdOrder = postNewOrder(VIP_USER_ID)
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
+        final String id = postNewOrderAngGetId(VIP_USER_ID);
 
-        final OrderDto result = objectMapper.readValue(createdOrder, OrderDto.class);
-
-        updatePositions(result.getId(), updatedOrderForm())
+        updatePositions(id, updatedOrderForm())
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", notNullValue()))
@@ -133,58 +124,110 @@ public class OrderTest {
 
     @Test
     public void shouldAcceptOrder() throws Exception {
-        final String createdOrder = postNewOrder(STANDARD_USER_ID)
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
-
-        final OrderDto result = objectMapper.readValue(createdOrder, OrderDto.class);
+        final String id = postNewOrderAngGetId(STANDARD_USER_ID);
 
         mockMvc.perform(
-                patch(String.format("/orders/%s/accept", result.getId()))
+                patch(String.format("/orders/%s/accept", id))
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.id", is(result.getId())))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", is(id)))
                 .andExpect(jsonPath("$.status", is("ACCEPTED")));
     }
 
     @Test
     public void shouldNotChangeStatusFromAcceptedToDraftIfProductsAreTheSame() throws Exception {
-        final String createdOrder = postNewOrder(STANDARD_USER_ID)
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
-
-        final OrderDto result = objectMapper.readValue(createdOrder, OrderDto.class);
+        final String id = postNewOrderAngGetId(STANDARD_USER_ID);
 
         mockMvc.perform(
-                patch(String.format("/orders/%s/accept", result.getId()))
+                patch(String.format("/orders/%s/accept", id))
                         .contentType(MediaType.APPLICATION_JSON));
 
-        updatePositions(result.getId(), splittedSampleOrderForm())
+        updatePositions(id, splittedSampleOrderForm())
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", is(result.getId())))
+                .andExpect(jsonPath("$.id", is(id)))
                 .andExpect(jsonPath("$.status", is("ACCEPTED")));
     }
 
     @Test
     public void shouldChangeStatusFromAcceptedToDraftIfProductsAreNotTheSame() throws Exception {
-        final String createdOrder = postNewOrder(STANDARD_USER_ID)
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
-
-        final OrderDto result = objectMapper.readValue(createdOrder, OrderDto.class);
+        final String id = postNewOrderAngGetId(STANDARD_USER_ID);
 
         mockMvc.perform(
-                patch(String.format("/orders/%s/accept", result.getId()))
+                patch(String.format("/orders/%s/accept", id))
                         .contentType(MediaType.APPLICATION_JSON));
 
-        updatePositions(result.getId(), updatedOrderForm())
+        updatePositions(id, updatedOrderForm())
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", is(result.getId())))
+                .andExpect(jsonPath("$.id", is(id)))
                 .andExpect(jsonPath("$.status", is("DRAFT")));
+    }
+
+    @Test
+    public void shouldConfirmOffer() throws Exception {
+        final String id = postNewOrderAngGetId(VIP_USER_ID);
+
+        mockMvc.perform(
+                patch(String.format("/orders/%s/confirm", id))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", is(id)))
+                .andExpect(jsonPath("$.status", is("CONFIRMED")));
+    }
+
+    @Test
+    public void shouldDeclineOffer() throws Exception {
+        final String id = postNewOrderAngGetId(STANDARD_USER_ID);
+
+        mockMvc.perform(
+                patch(String.format("/orders/%s/accept", id))
+                        .contentType(MediaType.APPLICATION_JSON));
+
+        mockMvc.perform(
+                patch(String.format("/orders/%s/decline", id))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", is(id)))
+                .andExpect(jsonPath("$.status", is("DRAFT")));
+    }
+
+    @Test
+    public void shouldNotAcceptOrderIfIsNotDraft() throws Exception {
+        final String id = postNewOrderAngGetId(VIP_USER_ID);
+
+        mockMvc.perform(
+                patch(String.format("/orders/%s/accept", id))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message", is("Your order is not draft.")))
+                .andExpect(jsonPath("$.resourceId", is(id)));
+    }
+
+    @Test
+    public void shouldNotConfirmOrderIfIsDraft() throws Exception {
+        final String id = postNewOrderAngGetId(STANDARD_USER_ID);
+
+        mockMvc.perform(
+                patch(String.format("/orders/%s/confirm", id))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message", is("Your order is neither accepted nor vip.")))
+                .andExpect(jsonPath("$.resourceId", is(id)));
+    }
+
+    @Test
+    public void shouldNotFoundOrder() throws Exception {
+        mockMvc.perform(
+                get(String.format("/orders/%s", "someId"))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isNotFound());
     }
 
     private ResultActions postNewOrder(String userId) throws Exception {
@@ -196,6 +239,17 @@ public class OrderTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-USER-ID", userId)
         );
+    }
+
+    private String postNewOrderAngGetId(String userId) throws Exception {
+        final String createdOrder = postNewOrder(userId)
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        final OrderDto result = objectMapper.readValue(createdOrder, OrderDto.class);
+
+        return result.getId();
     }
 
     private ResultActions updatePositions(String orderId, OrderForm orderForm) throws Exception {

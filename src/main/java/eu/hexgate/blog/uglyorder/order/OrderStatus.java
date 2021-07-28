@@ -1,4 +1,4 @@
-package eu.hexgate.blog.uglyorder;
+package eu.hexgate.blog.uglyorder.order;
 
 public enum OrderStatus {
 

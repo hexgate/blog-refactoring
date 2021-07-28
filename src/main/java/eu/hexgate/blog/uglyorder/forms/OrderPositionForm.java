@@ -13,6 +13,9 @@ public class OrderPositionForm {
         this.quantity = quantity;
     }
 
+    public OrderPositionForm() {
+    }
+
     public String getProductId() {
         return productId;
     }

@@ -1,5 +1,6 @@
-package eu.hexgate.blog.uglyorder;
+package eu.hexgate.blog.uglyorder.order;
 
+import eu.hexgate.blog.uglyorder.dto.ErrorDto;
 import eu.hexgate.blog.uglyorder.dto.OrderDto;
 import eu.hexgate.blog.uglyorder.forms.OrderForm;
 import org.springframework.http.ResponseEntity;
@@ -49,6 +50,20 @@ public class OrderController {
     @PatchMapping("/orders/{id}/confirm")
     ResponseEntity<OrderDto> confirm(@PathVariable String id) {
         return ResponseEntity.ok(orderService.confirm(id));
+    }
+
+    @ExceptionHandler(value = OrderStatusException.class)
+    ResponseEntity<ErrorDto> handleOrderStatusException(OrderStatusException e) {
+        return ResponseEntity
+                .badRequest()
+                .body(new ErrorDto(e.getMessage(), e.getOrderId()));
+    }
+
+    @ExceptionHandler(value = OrderNotFoundException.class)
+    ResponseEntity<ErrorDto> handleOrderNotFound(OrderNotFoundException e) {
+        return ResponseEntity
+                .notFound()
+                .build();
     }
 
     private String getCurrentUserId(HttpServletRequest request) {
