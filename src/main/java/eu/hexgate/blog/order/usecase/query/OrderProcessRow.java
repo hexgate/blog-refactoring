@@ -1,17 +1,10 @@
 package eu.hexgate.blog.order.usecase.query;
 
 import eu.hexgate.blog.order.domain.process.OrderStatus;
-import org.springframework.data.annotation.Immutable;
 
 import javax.persistence.*;
 
-@Entity
-@Table(name = "ORDER_PROCESS")
-@Immutable
-public class OrderProcessView {
-
-    @Id
-    private String id;
+public class OrderProcessRow {
 
     private String stepId;
 
@@ -22,8 +15,11 @@ public class OrderProcessView {
 
     private int step;
 
-    public String getId() {
-        return id;
+    public OrderProcessRow(String stepId, String correlatedOrderId, OrderStatus status, int step) {
+        this.stepId = stepId;
+        this.correlatedOrderId = correlatedOrderId;
+        this.status = status;
+        this.step = step;
     }
 
     public String getStepId() {

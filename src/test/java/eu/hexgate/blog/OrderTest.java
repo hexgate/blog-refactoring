@@ -4,8 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.hexgate.blog.order.dto.OrderDto;
 import eu.hexgate.blog.order.forms.OrderForm;
 import eu.hexgate.blog.order.forms.OrderPositionForm;
-import eu.hexgate.blog.order.usecase.query.OrderProcessView;
-import eu.hexgate.blog.order.usecase.query.OrderProcessViewRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -15,7 +13,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
 import java.util.List;
-import java.util.Set;
 
 import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
