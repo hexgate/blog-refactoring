@@ -21,8 +21,7 @@ public class MergedOrderPositions {
     @ElementCollection
     @CollectionTable(
             name = "ORDER_POSITION",
-            joinColumns = @JoinColumn(name = "ORDER_ID", referencedColumnName = "ID")
-//            joinColumns = @JoinColumn(name = "ORDER_ID", referencedColumnName = "CORRELATED_ORDER_ID")
+            joinColumns = @JoinColumn(name = "ORDER_ID")
     )
     private Set<OrderPosition> positions;
 
