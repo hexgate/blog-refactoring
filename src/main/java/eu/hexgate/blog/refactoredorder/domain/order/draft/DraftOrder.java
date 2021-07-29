@@ -1,12 +1,12 @@
-package eu.hexgate.blog.refactoredorder.domain.draft;
+package eu.hexgate.blog.refactoredorder.domain.order.draft;
 
 import eu.hexgate.blog.refactoredorder.domain.AggregateId;
-import eu.hexgate.blog.refactoredorder.domain.CorrelatedOrderId;
-import eu.hexgate.blog.refactoredorder.domain.MergedOrderPositions;
-import eu.hexgate.blog.refactoredorder.domain.OrderStepId;
-import eu.hexgate.blog.refactoredorder.domain.accepted.AcceptedOrder;
-import eu.hexgate.blog.refactoredorder.domain.process.OrderProcessStep;
-import eu.hexgate.blog.refactoredorder.domain.process.OrderStatus;
+import eu.hexgate.blog.refactoredorder.domain.order.CorrelatedOrderId;
+import eu.hexgate.blog.refactoredorder.domain.order.MergedOrderPositions;
+import eu.hexgate.blog.refactoredorder.domain.order.OrderStepId;
+import eu.hexgate.blog.refactoredorder.domain.order.accepted.AcceptedOrder;
+import eu.hexgate.blog.refactoredorder.domain.order.process.OrderProcessStep;
+import eu.hexgate.blog.refactoredorder.domain.order.process.OrderStatus;
 
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;

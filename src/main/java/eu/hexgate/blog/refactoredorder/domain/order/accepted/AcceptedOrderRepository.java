@@ -1,6 +1,6 @@
-package eu.hexgate.blog.refactoredorder.domain.accepted;
+package eu.hexgate.blog.refactoredorder.domain.order.accepted;
 
-import eu.hexgate.blog.refactoredorder.domain.OrderStepId;
+import eu.hexgate.blog.refactoredorder.domain.order.OrderStepId;
 import org.springframework.data.repository.Repository;
 
 import java.util.Optional;

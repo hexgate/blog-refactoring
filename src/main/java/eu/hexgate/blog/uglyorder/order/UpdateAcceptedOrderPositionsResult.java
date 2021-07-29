@@ -1,10 +1,10 @@
 package eu.hexgate.blog.uglyorder.order;
 
 import eu.hexgate.blog.refactoredorder.domain.AggregateId;
-import eu.hexgate.blog.refactoredorder.domain.CorrelatedOrderId;
-import eu.hexgate.blog.refactoredorder.domain.MergedOrderPositions;
-import eu.hexgate.blog.refactoredorder.domain.accepted.AcceptedOrder;
-import eu.hexgate.blog.refactoredorder.domain.draft.DraftOrder;
+import eu.hexgate.blog.refactoredorder.domain.order.CorrelatedOrderId;
+import eu.hexgate.blog.refactoredorder.domain.order.MergedOrderPositions;
+import eu.hexgate.blog.refactoredorder.domain.order.accepted.AcceptedOrder;
+import eu.hexgate.blog.refactoredorder.domain.order.draft.DraftOrder;
 
 import java.util.Objects;
 import java.util.function.Function;

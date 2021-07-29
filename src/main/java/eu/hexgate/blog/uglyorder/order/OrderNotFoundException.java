@@ -1,6 +1,6 @@
 package eu.hexgate.blog.uglyorder.order;
 
-import eu.hexgate.blog.refactoredorder.domain.CorrelatedOrderId;
+import eu.hexgate.blog.refactoredorder.domain.order.CorrelatedOrderId;
 
 public class OrderNotFoundException extends RuntimeException {
 

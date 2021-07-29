@@ -30,9 +30,6 @@ public class OrderTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @Autowired
-    private OrderService orderService;
-
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Test

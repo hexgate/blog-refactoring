@@ -1,4 +1,4 @@
-package eu.hexgate.blog.refactoredorder.domain;
+package eu.hexgate.blog.refactoredorder.domain.order;
 
 import javax.persistence.Embeddable;
 import java.io.Serializable;

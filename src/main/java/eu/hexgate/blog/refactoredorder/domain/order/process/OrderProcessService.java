@@ -1,6 +1,7 @@
-package eu.hexgate.blog.refactoredorder.domain.process;
+package eu.hexgate.blog.refactoredorder.domain.order.process;
 
-import eu.hexgate.blog.refactoredorder.domain.CorrelatedOrderId;
+import eu.hexgate.blog.refactoredorder.domain.order.CorrelatedOrderId;
+import eu.hexgate.blog.uglyorder.order.OrderNotFoundException;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -23,6 +24,7 @@ public class OrderProcessService {
     }
 
     public OrderProcess findByCorrelatedId(CorrelatedOrderId orderId) {
-        return orderProcessRepository.findByCorrelatedId(orderId);
+        return orderProcessRepository.findTopByOrderByStepAscAndByCorrelatedOrderId(orderId)
+                .orElseThrow(() -> new OrderNotFoundException(orderId));
     }
 }

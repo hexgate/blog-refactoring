@@ -1,7 +1,7 @@
 package eu.hexgate.blog.uglyorder.order;
 
-import eu.hexgate.blog.refactoredorder.domain.CorrelatedOrderId;
-import eu.hexgate.blog.refactoredorder.domain.process.OrderStatus;
+import eu.hexgate.blog.refactoredorder.domain.order.CorrelatedOrderId;
+import eu.hexgate.blog.refactoredorder.domain.order.process.OrderStatus;
 
 public class OrderStatusException extends RuntimeException {
     private final String orderId;

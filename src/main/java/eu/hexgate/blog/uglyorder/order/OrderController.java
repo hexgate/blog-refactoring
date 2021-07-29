@@ -15,10 +15,10 @@ import java.net.URI;
 @RestController
 public class OrderController {
 
-    private final UseCase<CreateOrderCommand, String> createOrderUseCase;
-    private final UseCase<UpdateOrderPositionsCommand, String> updateOrderPositionsUseCase;
+    private final UseCase<CreateOrderCommand> createOrderUseCase;
+    private final UseCase<UpdateOrderPositionsCommand> updateOrderPositionsUseCase;
 
-    public OrderController(UseCase<CreateOrderCommand, String> createOrderUseCase, UseCase<UpdateOrderPositionsCommand, String> updateOrderPositionsUseCase) {
+    public OrderController(UseCase<CreateOrderCommand> createOrderUseCase, UseCase<UpdateOrderPositionsCommand> updateOrderPositionsUseCase) {
         this.createOrderUseCase = createOrderUseCase;
         this.updateOrderPositionsUseCase = updateOrderPositionsUseCase;
     }

@@ -1,4 +1,6 @@
-package eu.hexgate.blog.refactoredorder.domain;
+package eu.hexgate.blog.refactoredorder.domain.order;
+
+import eu.hexgate.blog.refactoredorder.domain.AggregateId;
 
 import javax.persistence.Embeddable;
 import java.util.Objects;

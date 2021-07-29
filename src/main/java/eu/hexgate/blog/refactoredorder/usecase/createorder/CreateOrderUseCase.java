@@ -1,13 +1,13 @@
 package eu.hexgate.blog.refactoredorder.usecase.createorder;
 
 import eu.hexgate.blog.refactoredorder.domain.AggregateId;
-import eu.hexgate.blog.refactoredorder.domain.CorrelatedOrderId;
-import eu.hexgate.blog.refactoredorder.domain.MergedOrderPositions;
-import eu.hexgate.blog.refactoredorder.domain.draft.DraftOrder;
-import eu.hexgate.blog.refactoredorder.domain.draft.DraftOrderRepository;
-import eu.hexgate.blog.refactoredorder.domain.process.OrderProcessService;
-import eu.hexgate.blog.refactoredorder.domain.vip.VipOrder;
-import eu.hexgate.blog.refactoredorder.domain.vip.VipOrderRepository;
+import eu.hexgate.blog.refactoredorder.domain.order.CorrelatedOrderId;
+import eu.hexgate.blog.refactoredorder.domain.order.MergedOrderPositions;
+import eu.hexgate.blog.refactoredorder.domain.order.draft.DraftOrder;
+import eu.hexgate.blog.refactoredorder.domain.order.draft.DraftOrderRepository;
+import eu.hexgate.blog.refactoredorder.domain.order.process.OrderProcessService;
+import eu.hexgate.blog.refactoredorder.domain.order.vip.VipOrder;
+import eu.hexgate.blog.refactoredorder.domain.order.vip.VipOrderRepository;
 import eu.hexgate.blog.refactoredorder.usecase.UseCase;
 import eu.hexgate.blog.uglyorder.user.UserService;
 import org.springframework.stereotype.Service;
@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
 @Service
-public class CreateOrderUseCase implements UseCase<CreateOrderCommand, String> {
+public class CreateOrderUseCase implements UseCase<CreateOrderCommand> {
 
     private final DraftOrderRepository draftOrderRepository;
     private final VipOrderRepository vipOrderRepository;
@@ -31,27 +31,29 @@ public class CreateOrderUseCase implements UseCase<CreateOrderCommand, String> {
 
     @Override
     public String execute(CreateOrderCommand command) {
+        final MergedOrderPositions mergedOrderPositions = MergedOrderPositions.of(command.getPositions());
+        final AggregateId ownerId = AggregateId.fromString(command.getUserId());
         return userService.isVip(command.getUserId()) ?
-                createVipOrder(command) :
-                createDraftOrder(command);
+                createVipOrder(mergedOrderPositions, ownerId) :
+                createDraftOrder(mergedOrderPositions, ownerId);
     }
 
-    private String createVipOrder(CreateOrderCommand command) {
+    private String createVipOrder(MergedOrderPositions mergedOrderPositions, AggregateId ownerId) {
         final VipOrder vipOrder = new VipOrder(
                 CorrelatedOrderId.generate(),
-                AggregateId.fromString(command.getUserId()),
-                MergedOrderPositions.of(command.getPositions())
+                ownerId,
+                mergedOrderPositions
         );
 
         final VipOrder saved = vipOrderRepository.save(vipOrder);
         return orderProcessService.createAndSave(saved);
     }
 
-    private String createDraftOrder(CreateOrderCommand command) {
+    private String createDraftOrder(MergedOrderPositions mergedOrderPositions, AggregateId ownerId) {
         final DraftOrder draftOrder = new DraftOrder(
                 CorrelatedOrderId.generate(),
-                AggregateId.fromString(command.getUserId()),
-                MergedOrderPositions.of(command.getPositions())
+                ownerId,
+                mergedOrderPositions
         );
 
         final DraftOrder saved = draftOrderRepository.save(draftOrder);

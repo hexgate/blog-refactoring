@@ -2,7 +2,7 @@ package eu.hexgate.blog.uglyorder.dto;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import eu.hexgate.blog.MoneySerializer;
-import eu.hexgate.blog.refactoredorder.domain.process.OrderStatus;
+import eu.hexgate.blog.refactoredorder.domain.order.process.OrderStatus;
 
 import java.math.BigDecimal;
 import java.util.List;

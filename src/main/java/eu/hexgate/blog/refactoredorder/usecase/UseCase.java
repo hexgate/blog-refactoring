@@ -1,8 +1,8 @@
 package eu.hexgate.blog.refactoredorder.usecase;
 
-public interface UseCase<Command, T> {
+public interface UseCase<Command> {
 
-    T execute(Command command);
+    String execute(Command command);
 
     interface Command {
     }

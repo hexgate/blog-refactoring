@@ -1,13 +1,16 @@
-package eu.hexgate.blog.refactoredorder.domain.accepted;
+package eu.hexgate.blog.refactoredorder.domain.order.accepted;
 
 import eu.hexgate.blog.refactoredorder.domain.AggregateId;
-import eu.hexgate.blog.refactoredorder.domain.CorrelatedOrderId;
-import eu.hexgate.blog.refactoredorder.domain.MergedOrderPositions;
-import eu.hexgate.blog.refactoredorder.domain.OrderStepId;
-import eu.hexgate.blog.refactoredorder.domain.confirmed.ConfirmedOrder;
-import eu.hexgate.blog.refactoredorder.domain.draft.DraftOrder;
-import eu.hexgate.blog.refactoredorder.domain.process.OrderProcessStep;
-import eu.hexgate.blog.refactoredorder.domain.process.OrderStatus;
+import eu.hexgate.blog.refactoredorder.domain.Price;
+import eu.hexgate.blog.refactoredorder.domain.PriceWithTax;
+import eu.hexgate.blog.refactoredorder.domain.Tax;
+import eu.hexgate.blog.refactoredorder.domain.order.CorrelatedOrderId;
+import eu.hexgate.blog.refactoredorder.domain.order.MergedOrderPositions;
+import eu.hexgate.blog.refactoredorder.domain.order.OrderStepId;
+import eu.hexgate.blog.refactoredorder.domain.order.confirmed.ConfirmedOrder;
+import eu.hexgate.blog.refactoredorder.domain.order.draft.DraftOrder;
+import eu.hexgate.blog.refactoredorder.domain.order.process.OrderProcessStep;
+import eu.hexgate.blog.refactoredorder.domain.order.process.OrderStatus;
 import eu.hexgate.blog.uglyorder.order.UpdateAcceptedOrderPositionsResult;
 
 import javax.persistence.EmbeddedId;
@@ -44,8 +47,12 @@ public class AcceptedOrder implements OrderProcessStep {
         return new DraftOrder(correlatedOrderId, ownerId, mergedOrderPositions);
     }
 
-    public ConfirmedOrder confirm() {
-        return new ConfirmedOrder(correlatedOrderId, ownerId);
+    public ConfirmedOrder confirm(Price shippingPrice, Tax tax) {
+        final PriceWithTax totalPriceWithTax = mergedOrderPositions.calculateBasePrice()
+                .withTax(tax)
+                .add(shippingPrice);
+
+        return new ConfirmedOrder(correlatedOrderId, ownerId, totalPriceWithTax);
     }
 
     public CorrelatedOrderId getCorrelatedOrderId() {

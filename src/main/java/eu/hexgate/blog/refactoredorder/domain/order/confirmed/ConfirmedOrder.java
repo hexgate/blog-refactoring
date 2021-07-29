@@ -1,15 +1,15 @@
-package eu.hexgate.blog.refactoredorder.domain.confirmed;
+package eu.hexgate.blog.refactoredorder.domain.order.confirmed;
 
 import eu.hexgate.blog.refactoredorder.domain.AggregateId;
-import eu.hexgate.blog.refactoredorder.domain.CorrelatedOrderId;
-import eu.hexgate.blog.refactoredorder.domain.OrderStepId;
-import eu.hexgate.blog.refactoredorder.domain.process.OrderProcessStep;
-import eu.hexgate.blog.refactoredorder.domain.process.OrderStatus;
+import eu.hexgate.blog.refactoredorder.domain.PriceWithTax;
+import eu.hexgate.blog.refactoredorder.domain.order.CorrelatedOrderId;
+import eu.hexgate.blog.refactoredorder.domain.order.OrderStepId;
+import eu.hexgate.blog.refactoredorder.domain.order.process.OrderProcessStep;
+import eu.hexgate.blog.refactoredorder.domain.order.process.OrderStatus;
 
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
 import javax.persistence.Table;
-import java.math.BigDecimal;
 
 @Entity
 @Table(name = "CONFIRMED_ORDER")
@@ -22,12 +22,13 @@ public class ConfirmedOrder implements OrderProcessStep {
 
     private AggregateId ownerId;
 
-    private BigDecimal confirmedTotalPrice; // todo refactor
+    private PriceWithTax confirmedTotalPrice; // todo refactor
 
-    public ConfirmedOrder(CorrelatedOrderId correlatedOrderId, AggregateId ownerId) {
+    public ConfirmedOrder(CorrelatedOrderId correlatedOrderId, AggregateId ownerId, PriceWithTax confirmedTotalPrice) {
         this.id = OrderStepId.generate();
         this.correlatedOrderId = correlatedOrderId;
         this.ownerId = ownerId;
+        this.confirmedTotalPrice = confirmedTotalPrice;
     }
 
     @Override
