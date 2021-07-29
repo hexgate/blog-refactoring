@@ -13,9 +13,9 @@ public class OrderProcessService {
         this.orderProcessRepository = orderProcessRepository;
     }
 
-    public String incrementStepAndSave(OrderProcess orderProcess, OrderProcessStep orderProcessStep) {
-        orderProcessRepository.save(orderProcess.next(orderProcessStep.getStatus(), orderProcessStep.getStepId()));
-        return orderProcessStep.getCorrelatedOrderId().getId();
+    public String save(OrderProcess orderProcess) {
+        final OrderProcess saved = orderProcessRepository.save(orderProcess);
+        return saved.getCorrelatedOrderId().getId();
     }
 
     public String createAndSave(OrderProcessStep orderProcessStep) {
@@ -24,7 +24,7 @@ public class OrderProcessService {
     }
 
     public OrderProcess findByCorrelatedId(CorrelatedOrderId orderId) {
-        return orderProcessRepository.findTopByOrderByStepAscAndByCorrelatedOrderId(orderId)
+        return orderProcessRepository.findTop(orderId)
                 .orElseThrow(() -> new OrderNotFoundException(orderId));
     }
 }

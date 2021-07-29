@@ -5,6 +5,7 @@ import eu.hexgate.blog.refactoredorder.domain.order.CorrelatedOrderId;
 import eu.hexgate.blog.refactoredorder.domain.order.MergedOrderPositions;
 import eu.hexgate.blog.refactoredorder.domain.order.accepted.AcceptedOrder;
 import eu.hexgate.blog.refactoredorder.domain.order.draft.DraftOrder;
+import eu.hexgate.blog.refactoredorder.domain.order.process.OrderProcessStep;
 
 import java.util.Objects;
 import java.util.function.Function;
@@ -27,7 +28,7 @@ public class UpdateAcceptedOrderPositionsResult {
         return new UpdateAcceptedOrderPositionsResult(null, new DraftOrder(correlatedOrderId, ownerId, mergedOrderPositions));
     }
 
-    public String route(Function<AcceptedOrder, String> handleAccepted, Function<DraftOrder, String> handleDraft) {
+    public OrderProcessStep route(Function<AcceptedOrder, OrderProcessStep> handleAccepted, Function<DraftOrder, OrderProcessStep> handleDraft) {
         return Objects.isNull(acceptedOrder) ?
                 handleDraft.apply(draftOrder) :
                 handleAccepted.apply(acceptedOrder);

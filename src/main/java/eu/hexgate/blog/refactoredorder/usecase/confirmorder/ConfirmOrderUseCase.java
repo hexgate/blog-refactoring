@@ -9,14 +9,20 @@ import eu.hexgate.blog.refactoredorder.domain.order.confirmed.ConfirmedOrder;
 import eu.hexgate.blog.refactoredorder.domain.order.confirmed.ConfirmedOrderRepository;
 import eu.hexgate.blog.refactoredorder.domain.order.process.OrderProcess;
 import eu.hexgate.blog.refactoredorder.domain.order.process.OrderProcessService;
+import eu.hexgate.blog.refactoredorder.domain.order.process.OrderProcessStep;
 import eu.hexgate.blog.refactoredorder.domain.order.process.OrderStatus;
+import eu.hexgate.blog.refactoredorder.domain.order.vip.VipOrder;
 import eu.hexgate.blog.refactoredorder.domain.order.vip.VipOrderRepository;
 import eu.hexgate.blog.refactoredorder.usecase.UseCase;
 import eu.hexgate.blog.uglyorder.order.OrderNotFoundException;
 import eu.hexgate.blog.uglyorder.order.OrderStatusException;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 
+@Transactional
+@Service
 public class ConfirmOrderUseCase implements UseCase<ConfirmOrderCommand> {
 
     private final OrderProcessService orderProcessService;
@@ -36,28 +42,33 @@ public class ConfirmOrderUseCase implements UseCase<ConfirmOrderCommand> {
         final CorrelatedOrderId correlatedOrderId = CorrelatedOrderId.fromString(confirmOrderCommand.getOrderId());
         final OrderProcess orderProcess = orderProcessService.findByCorrelatedId(correlatedOrderId);
 
-        return orderProcess.routing()
+        final OrderProcess executed = orderProcess.routing()
                 .handleAccepted(() -> confirmAccepted(orderProcess))
                 .handleVip(() -> confirmVip(orderProcess))
                 .handleDraft(() -> error(correlatedOrderId, OrderStatus.DRAFT))
                 .handleConfirmed(() -> error(correlatedOrderId, OrderStatus.CONFIRMED))
                 .execute();
+
+        return orderProcessService.save(executed);
     }
 
-    private String confirmAccepted(OrderProcess orderProcess) {
+    private OrderProcessStep confirmAccepted(OrderProcess orderProcess) {
         final AcceptedOrder acceptedOrder = acceptedOrderRepository.findById(orderProcess.getStepId())
                 .orElseThrow(() -> new OrderNotFoundException(orderProcess.getCorrelatedOrderId()));
 
-        final ConfirmedOrder confirmedOrder = acceptedOrder.confirm(Price.of(BigDecimal.ONE), Tax.asDecimalValue(new BigDecimal("0.5")));
-        final ConfirmedOrder savedConfirmedOrder = confirmedOrderRepository.save(confirmedOrder);
-
+        final ConfirmedOrder confirmedOrder = acceptedOrder.confirm(Price.of(BigDecimal.ONE), Tax.asDecimalValue(new BigDecimal("0.5"))); // TODO
+        return confirmedOrderRepository.save(confirmedOrder);
     }
 
-    private String confirmVip(OrderProcess orderProcess) {
+    private OrderProcessStep confirmVip(OrderProcess orderProcess) {
+        final VipOrder vipOrder = vipOrderRepository.findById(orderProcess.getStepId())
+                .orElseThrow(() -> new OrderNotFoundException(orderProcess.getCorrelatedOrderId()));
 
+        final ConfirmedOrder confirmedOrder = vipOrder.confirm(Price.of(BigDecimal.ONE), Tax.asDecimalValue(new BigDecimal("0.5"))); // TODO
+        return confirmedOrderRepository.save(confirmedOrder);
     }
 
-    private String error(CorrelatedOrderId orderId, OrderStatus orderStatus) {
+    private OrderProcessStep error(CorrelatedOrderId orderId, OrderStatus orderStatus) {
         throw new OrderStatusException(orderId, "Your order is neither accepted nor vip.", orderStatus);
     }
 }

@@ -6,6 +6,7 @@ import eu.hexgate.blog.refactoredorder.domain.order.MergedOrderPositions;
 import eu.hexgate.blog.refactoredorder.domain.order.draft.DraftOrder;
 import eu.hexgate.blog.refactoredorder.domain.order.draft.DraftOrderRepository;
 import eu.hexgate.blog.refactoredorder.domain.order.process.OrderProcessService;
+import eu.hexgate.blog.refactoredorder.domain.order.process.OrderProcessStep;
 import eu.hexgate.blog.refactoredorder.domain.order.vip.VipOrder;
 import eu.hexgate.blog.refactoredorder.domain.order.vip.VipOrderRepository;
 import eu.hexgate.blog.refactoredorder.usecase.UseCase;
@@ -33,30 +34,30 @@ public class CreateOrderUseCase implements UseCase<CreateOrderCommand> {
     public String execute(CreateOrderCommand command) {
         final MergedOrderPositions mergedOrderPositions = MergedOrderPositions.of(command.getPositions());
         final AggregateId ownerId = AggregateId.fromString(command.getUserId());
-        return userService.isVip(command.getUserId()) ?
+        final OrderProcessStep orderProcessStep = userService.isVip(command.getUserId()) ?
                 createVipOrder(mergedOrderPositions, ownerId) :
                 createDraftOrder(mergedOrderPositions, ownerId);
+
+        return orderProcessService.createAndSave(orderProcessStep);
     }
 
-    private String createVipOrder(MergedOrderPositions mergedOrderPositions, AggregateId ownerId) {
+    private OrderProcessStep createVipOrder(MergedOrderPositions mergedOrderPositions, AggregateId ownerId) {
         final VipOrder vipOrder = new VipOrder(
                 CorrelatedOrderId.generate(),
                 ownerId,
                 mergedOrderPositions
         );
 
-        final VipOrder saved = vipOrderRepository.save(vipOrder);
-        return orderProcessService.createAndSave(saved);
+        return vipOrderRepository.save(vipOrder);
     }
 
-    private String createDraftOrder(MergedOrderPositions mergedOrderPositions, AggregateId ownerId) {
+    private OrderProcessStep createDraftOrder(MergedOrderPositions mergedOrderPositions, AggregateId ownerId) {
         final DraftOrder draftOrder = new DraftOrder(
                 CorrelatedOrderId.generate(),
                 ownerId,
                 mergedOrderPositions
         );
 
-        final DraftOrder saved = draftOrderRepository.save(draftOrder);
-        return orderProcessService.createAndSave(saved);
+        return draftOrderRepository.save(draftOrder);
     }
 }

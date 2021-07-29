@@ -1,12 +1,15 @@
 package eu.hexgate.blog.refactoredorder.domain;
 
+import javax.persistence.Access;
+import javax.persistence.AccessType;
 import javax.persistence.Embeddable;
 import java.io.Serializable;
 import java.util.Objects;
 import java.util.UUID;
 
 @Embeddable
-public class AggregateId implements Serializable {
+@Access(AccessType.FIELD)
+public class AggregateId implements Serializable, Comparable<AggregateId> {
 
     private String id;
 
@@ -26,10 +29,6 @@ public class AggregateId implements Serializable {
         return new AggregateId(Objects.requireNonNull(id));
     }
 
-    public String getId() {
-        return id;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -41,5 +40,10 @@ public class AggregateId implements Serializable {
     @Override
     public int hashCode() {
         return Objects.hash(id);
+    }
+
+    @Override
+    public int compareTo(AggregateId o) {
+        return id.compareTo(o.id);
     }
 }

@@ -8,9 +8,7 @@ import eu.hexgate.blog.refactoredorder.domain.order.accepted.AcceptedOrder;
 import eu.hexgate.blog.refactoredorder.domain.order.process.OrderProcessStep;
 import eu.hexgate.blog.refactoredorder.domain.order.process.OrderStatus;
 
-import javax.persistence.EmbeddedId;
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 @Entity
 @Table(name = "DRAFT_ORDER")
@@ -19,10 +17,14 @@ public class DraftOrder implements OrderProcessStep {
     @EmbeddedId
     private OrderStepId id;
 
+    @Embedded
     private CorrelatedOrderId correlatedOrderId;
 
+    @Embedded
+    @AttributeOverride(name = "id", column = @Column(name = "OWNER_ID"))
     private AggregateId ownerId;
 
+    @Embedded
     private MergedOrderPositions mergedOrderPositions;
 
     public DraftOrder(CorrelatedOrderId correlatedOrderId, AggregateId ownerId, MergedOrderPositions mergedOrderPositions) {
@@ -30,6 +32,10 @@ public class DraftOrder implements OrderProcessStep {
         this.correlatedOrderId = correlatedOrderId;
         this.ownerId = ownerId;
         this.mergedOrderPositions = mergedOrderPositions;
+    }
+
+    private DraftOrder() {
+        // JPA ONLY
     }
 
     public DraftOrder updateProductLines(MergedOrderPositions newMergedOrderPositions) {

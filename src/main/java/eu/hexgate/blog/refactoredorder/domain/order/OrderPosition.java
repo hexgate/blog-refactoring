@@ -2,12 +2,14 @@ package eu.hexgate.blog.refactoredorder.domain.order;
 
 import eu.hexgate.blog.refactoredorder.domain.AggregateId;
 
-import javax.persistence.Embeddable;
+import javax.persistence.*;
 import java.util.Objects;
 
 @Embeddable
 public class OrderPosition {
 
+    @Embedded
+    @AttributeOverride(name = "id", column = @Column(name = "PRODUCT_ID"))
     private AggregateId productId;
 
     private int quantity;

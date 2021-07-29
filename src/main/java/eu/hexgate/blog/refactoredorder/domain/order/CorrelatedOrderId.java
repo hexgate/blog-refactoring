@@ -1,5 +1,6 @@
 package eu.hexgate.blog.refactoredorder.domain.order;
 
+import javax.persistence.Column;
 import javax.persistence.Embeddable;
 import java.io.Serializable;
 import java.util.Objects;
@@ -8,6 +9,7 @@ import java.util.UUID;
 @Embeddable
 public class CorrelatedOrderId implements Serializable {
 
+    @Column(name = "CORRELATED_ORDER_ID")
     private String id;
 
     private CorrelatedOrderId() {

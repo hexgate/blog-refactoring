@@ -13,9 +13,7 @@ import eu.hexgate.blog.refactoredorder.domain.order.process.OrderProcessStep;
 import eu.hexgate.blog.refactoredorder.domain.order.process.OrderStatus;
 import eu.hexgate.blog.uglyorder.order.UpdateAcceptedOrderPositionsResult;
 
-import javax.persistence.EmbeddedId;
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 @Entity
 @Table(name = "ACCEPTED_ORDER")
@@ -24,10 +22,14 @@ public class AcceptedOrder implements OrderProcessStep {
     @EmbeddedId
     private OrderStepId id;
 
+    @Embedded
     private CorrelatedOrderId correlatedOrderId;
 
+    @Embedded
+    @AttributeOverride(name = "id", column = @Column(name = "OWNER_ID"))
     private AggregateId ownerId;
 
+    @Embedded
     private MergedOrderPositions mergedOrderPositions;
 
     public AcceptedOrder(CorrelatedOrderId correlatedOrderId, AggregateId ownerId, MergedOrderPositions mergedOrderPositions) {
@@ -35,6 +37,10 @@ public class AcceptedOrder implements OrderProcessStep {
         this.correlatedOrderId = correlatedOrderId;
         this.ownerId = ownerId;
         this.mergedOrderPositions = mergedOrderPositions;
+    }
+
+    private AcceptedOrder() {
+        // JPA ONLY
     }
 
     public UpdateAcceptedOrderPositionsResult updateProductLines(MergedOrderPositions newMergedOrderPositions) {

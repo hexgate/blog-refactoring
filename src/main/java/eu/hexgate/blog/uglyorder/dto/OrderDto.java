@@ -36,6 +36,10 @@ public class OrderDto {
     public OrderDto() {
     }
 
+    public OrderDto(String id) {
+        this.id = id;
+    }
+
     public String getId() {
         return id;
     }

@@ -8,6 +8,7 @@ import eu.hexgate.blog.refactoredorder.domain.order.draft.DraftOrder;
 import eu.hexgate.blog.refactoredorder.domain.order.draft.DraftOrderRepository;
 import eu.hexgate.blog.refactoredorder.domain.order.process.OrderProcess;
 import eu.hexgate.blog.refactoredorder.domain.order.process.OrderProcessService;
+import eu.hexgate.blog.refactoredorder.domain.order.process.OrderProcessStep;
 import eu.hexgate.blog.refactoredorder.domain.order.process.OrderStatus;
 import eu.hexgate.blog.refactoredorder.domain.order.vip.VipOrder;
 import eu.hexgate.blog.refactoredorder.domain.order.vip.VipOrderRepository;
@@ -39,7 +40,7 @@ public class UpdateOrderPositionsUseCase implements UseCase<UpdateOrderPositions
         final CorrelatedOrderId orderId = CorrelatedOrderId.fromString(updateOrderPositionsCommand.getOrderId());
         final OrderProcess orderProcess = orderProcessService.findByCorrelatedId(orderId);
 
-        return orderProcess.routing()
+        final OrderProcess executed = orderProcess.routing()
                 .handleDraft(() -> updateDraft(orderProcess, mergedOrderPositions))
                 .handleAccepted(() -> updateAccepted(orderProcess, mergedOrderPositions))
                 .handleVip(() -> updateVip(orderProcess, mergedOrderPositions))
@@ -47,41 +48,34 @@ public class UpdateOrderPositionsUseCase implements UseCase<UpdateOrderPositions
                     throw new OrderStatusException(orderId, "Your order has already been confirmed.", OrderStatus.CONFIRMED);
                 })
                 .execute();
+
+        return orderProcessService.save(executed);
     }
 
-    private String updateDraft(OrderProcess orderProcess, MergedOrderPositions mergedOrderPositions) {
+    private OrderProcessStep updateDraft(OrderProcess orderProcess, MergedOrderPositions mergedOrderPositions) {
         final DraftOrder draftOrder = draftOrderRepository.findById(orderProcess.getStepId())
                 .orElseThrow(() -> new OrderNotFoundException(orderProcess.getCorrelatedOrderId()));
 
         final DraftOrder newDraftOrder = draftOrder.updateProductLines(mergedOrderPositions);
-        final DraftOrder savedNewDraftOrder = draftOrderRepository.save(newDraftOrder);
-
-        return orderProcessService.incrementStepAndSave(orderProcess, savedNewDraftOrder);
+        return draftOrderRepository.save(newDraftOrder);
     }
 
-    private String updateAccepted(OrderProcess orderProcess, MergedOrderPositions mergedOrderPositions) {
+    private OrderProcessStep updateAccepted(OrderProcess orderProcess, MergedOrderPositions mergedOrderPositions) {
         final AcceptedOrder acceptedOrder = acceptedOrderRepository.findById(orderProcess.getStepId())
                 .orElseThrow(() -> new OrderNotFoundException(orderProcess.getCorrelatedOrderId()));
 
         return acceptedOrder.updateProductLines(mergedOrderPositions)
                 .route(
-                        accepted -> {
-                            final AcceptedOrder savedAccepted = acceptedOrderRepository.save(accepted);
-                            return orderProcessService.incrementStepAndSave(orderProcess, savedAccepted);
-                        }, draft -> {
-                            final DraftOrder savedDraft = draftOrderRepository.save(draft);
-                            return orderProcessService.incrementStepAndSave(orderProcess, savedDraft);
-                        }
+                        acceptedOrderRepository::save,
+                        draftOrderRepository::save
                 );
     }
 
-    private String updateVip(OrderProcess orderProcess, MergedOrderPositions mergedOrderPositions) {
+    private OrderProcessStep updateVip(OrderProcess orderProcess, MergedOrderPositions mergedOrderPositions) {
         final VipOrder vipOrder = vipOrderRepository.findById(orderProcess.getStepId())
                 .orElseThrow(() -> new OrderNotFoundException(orderProcess.getCorrelatedOrderId()));
 
         final VipOrder newVipOrder = vipOrder.updateProductLines(mergedOrderPositions);
-        final VipOrder savedNewVipOrder = vipOrderRepository.save(newVipOrder);
-
-        return orderProcessService.incrementStepAndSave(orderProcess, savedNewVipOrder);
+        return vipOrderRepository.save(newVipOrder);
     }
 }

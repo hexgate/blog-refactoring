@@ -4,10 +4,7 @@ import eu.hexgate.blog.refactoredorder.domain.AggregateId;
 import eu.hexgate.blog.refactoredorder.domain.Price;
 import eu.hexgate.blog.uglyorder.forms.OrderPositionForm;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Embeddable;
-import javax.persistence.JoinColumn;
-import javax.persistence.OneToMany;
+import javax.persistence.*;
 import java.math.BigDecimal;
 import java.util.Comparator;
 import java.util.List;
@@ -18,8 +15,11 @@ import java.util.stream.Collectors;
 @Embeddable
 public class MergedOrderPositions {
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "ORDER_ID")
+    @ElementCollection
+    @CollectionTable(
+            name = "ORDER_POSITION",
+            joinColumns = @JoinColumn(name = "ORDER_ID", referencedColumnName = "ID")
+    )
     private Set<OrderPosition> positions;
 
     private MergedOrderPositions() {
@@ -48,11 +48,11 @@ public class MergedOrderPositions {
         }
 
         final List<OrderPosition> sortedBefore = before.stream()
-                .sorted(Comparator.comparing(o -> o.getProductId().getId()))
+                .sorted(Comparator.comparing(OrderPosition::getProductId))
                 .collect(Collectors.toList());
 
         final List<OrderPosition> sortedAfter = after.stream()
-                .sorted(Comparator.comparing(o -> o.getProductId().getId()))
+                .sorted(Comparator.comparing(OrderPosition::getProductId))
                 .collect(Collectors.toList());
 
         for (int i = 0; i < sortedBefore.size(); ++i) {

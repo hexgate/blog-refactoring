@@ -9,17 +9,18 @@ import javax.persistence.*;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-import static java.util.Objects.requireNonNull;
-
 @Entity
 @Table(name = "ORDER_PROCESS")
 public class OrderProcess {
 
-    @Id
+    @EmbeddedId
     private AggregateId id;
 
+    @Embedded
+    @AttributeOverride(name = "id", column = @Column(name = "STEP_ID"))
     private OrderStepId stepId;
 
+    @Embedded
     private CorrelatedOrderId correlatedOrderId;
 
     @Enumerated(value = EnumType.STRING)
@@ -35,12 +36,12 @@ public class OrderProcess {
         this.step = step;
     }
 
-    public static OrderProcess first(OrderProcessStep orderProcessStep) {
-        return new OrderProcess(AggregateId.generate(), orderProcessStep.getStepId(), orderProcessStep.getCorrelatedOrderId(), orderProcessStep.getStatus(), 0);
+    private OrderProcess() {
+        // JPA ONLY
     }
 
-    public OrderProcess next(OrderStatus status, OrderStepId stepId) {
-        return new OrderProcess(AggregateId.generate(), stepId, correlatedOrderId, status, step + 1);
+    public static OrderProcess first(OrderProcessStep orderProcessStep) {
+        return new OrderProcess(AggregateId.generate(), orderProcessStep.getStepId(), orderProcessStep.getCorrelatedOrderId(), orderProcessStep.getStatus(), 0);
     }
 
     public Routing routing() {
@@ -55,51 +56,64 @@ public class OrderProcess {
         return correlatedOrderId;
     }
 
+    private OrderProcess next(OrderStatus status, OrderStepId stepId) {
+        return new OrderProcess(AggregateId.generate(), stepId, correlatedOrderId, status, step + 1);
+    }
+
     public class Routing {
-        private Supplier<String> handleDraft;
-        private Supplier<String> handleAccepted;
-        private Supplier<String> handleVip;
-        private Supplier<String> handleConfirmed;
+        private Supplier<OrderProcessStep> handleDraft;
+        private Supplier<OrderProcessStep> handleAccepted;
+        private Supplier<OrderProcessStep> handleVip;
+        private Supplier<OrderProcessStep> handleConfirmed;
 
         private Routing() {
         }
 
-        public Routing handleDraft(Supplier<String> handleDraft) {
+        public Routing handleDraft(Supplier<OrderProcessStep> handleDraft) {
             this.handleDraft = handleDraft;
             return this;
         }
 
-        public Routing handleAccepted(Supplier<String> handleAccepted) {
+        public Routing handleAccepted(Supplier<OrderProcessStep> handleAccepted) {
             this.handleAccepted = handleAccepted;
             return this;
         }
 
-        public Routing handleVip(Supplier<String> handleVip) {
+        public Routing handleVip(Supplier<OrderProcessStep> handleVip) {
             this.handleVip = handleVip;
             return this;
         }
 
-        public Routing handleConfirmed(Supplier<String> handleConfirmed) {
+        public Routing handleConfirmed(Supplier<OrderProcessStep> handleConfirmed) {
             this.handleConfirmed = handleConfirmed;
             return this;
         }
 
-        public String execute() {
+        public OrderProcess execute() {
+
+            OrderProcessStep orderProcessStep;
+
             switch (status) {
                 case DRAFT:
-                    return tryExecuteSupplier(handleDraft);
+                    orderProcessStep = tryExecuteSupplier(handleDraft);
+                    break;
                 case ACCEPTED:
-                    return tryExecuteSupplier(handleAccepted);
+                    orderProcessStep = tryExecuteSupplier(handleAccepted);
+                    break;
                 case VIP:
-                    return tryExecuteSupplier(handleVip);
+                    orderProcessStep = tryExecuteSupplier(handleVip);
+                    break;
                 case CONFIRMED:
-                    return tryExecuteSupplier(handleConfirmed);
+                    orderProcessStep = tryExecuteSupplier(handleConfirmed);
+                    break;
+                default:
+                    throw new IllegalStateException("Invalid state");
             }
 
-            throw new IllegalStateException("Invalid state");
+            return next(orderProcessStep.getStatus(), orderProcessStep.getStepId());
         }
 
-        private String tryExecuteSupplier(Supplier<String> supplier) {
+        private OrderProcessStep tryExecuteSupplier(Supplier<OrderProcessStep> supplier) {
             return Optional.ofNullable(supplier)
                     .map(Supplier::get)
                     .orElseThrow(() -> new OrderStatusException(correlatedOrderId, "Your order has invalid status", status));

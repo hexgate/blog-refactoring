@@ -11,9 +11,7 @@ import eu.hexgate.blog.refactoredorder.domain.order.confirmed.ConfirmedOrder;
 import eu.hexgate.blog.refactoredorder.domain.order.process.OrderProcessStep;
 import eu.hexgate.blog.refactoredorder.domain.order.process.OrderStatus;
 
-import javax.persistence.EmbeddedId;
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 @Entity
 @Table(name = "VIP_ORDER")
@@ -22,10 +20,14 @@ public class VipOrder implements OrderProcessStep {
     @EmbeddedId
     private OrderStepId id;
 
+    @Embedded
     private CorrelatedOrderId correlatedOrderId;
 
+    @Embedded
+    @AttributeOverride(name = "id", column = @Column(name = "OWNER_ID"))
     private AggregateId ownerId;
 
+    @Embedded
     private MergedOrderPositions mergedOrderPositions;
 
     public VipOrder(CorrelatedOrderId correlatedOrderId, AggregateId ownerId, MergedOrderPositions mergedOrderPositions) {
@@ -33,6 +35,10 @@ public class VipOrder implements OrderProcessStep {
         this.correlatedOrderId = correlatedOrderId;
         this.ownerId = ownerId;
         this.mergedOrderPositions = mergedOrderPositions;
+    }
+
+    private VipOrder() {
+        // JPA ONLY
     }
 
     public VipOrder updateProductLines(MergedOrderPositions newMergedOrderPositions) {
