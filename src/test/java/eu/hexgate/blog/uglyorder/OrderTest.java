@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.hexgate.blog.uglyorder.dto.OrderDto;
 import eu.hexgate.blog.uglyorder.forms.OrderForm;
 import eu.hexgate.blog.uglyorder.forms.OrderPositionForm;
-import eu.hexgate.blog.uglyorder.order.OrderService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -30,9 +29,6 @@ public class OrderTest {
 
     @Autowired
     private MockMvc mockMvc;
-
-    @Autowired
-    private OrderService orderService;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 

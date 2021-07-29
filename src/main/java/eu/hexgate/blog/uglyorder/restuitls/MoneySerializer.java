@@ -1,4 +1,4 @@
-package eu.hexgate.blog;
+package eu.hexgate.blog.uglyorder.restuitls;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;

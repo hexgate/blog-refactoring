@@ -1,7 +1,7 @@
 package eu.hexgate.blog.uglyorder.dto;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import eu.hexgate.blog.MoneySerializer;
+import eu.hexgate.blog.uglyorder.restuitls.MoneySerializer;
 import eu.hexgate.blog.uglyorder.order.OrderStatus;
 
 import java.math.BigDecimal;
