@@ -1,6 +1,6 @@
 package eu.hexgate.blog.order.domain.process;
 
-import eu.hexgate.blog.order.AggregateId;
+import eu.hexgate.blog.order.ExternalAggregateId;
 import eu.hexgate.blog.order.domain.CorrelatedOrderId;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -10,7 +10,7 @@ import org.springframework.data.repository.Repository;
 import java.util.List;
 import java.util.Optional;
 
-public interface OrderProcessRepository extends Repository<OrderProcess, AggregateId> {
+public interface OrderProcessRepository extends Repository<OrderProcess, ExternalAggregateId> {
 
     OrderProcess save(OrderProcess orderProcess);
 

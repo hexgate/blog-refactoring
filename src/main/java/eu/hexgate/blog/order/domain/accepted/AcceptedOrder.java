@@ -1,6 +1,6 @@
 package eu.hexgate.blog.order.domain.accepted;
 
-import eu.hexgate.blog.order.AggregateId;
+import eu.hexgate.blog.order.ExternalAggregateId;
 import eu.hexgate.blog.order.domain.Price;
 import eu.hexgate.blog.order.domain.PriceWithTax;
 import eu.hexgate.blog.order.domain.Tax;
@@ -27,12 +27,12 @@ public class AcceptedOrder implements OrderProcessStep {
 
     @Embedded
     @AttributeOverride(name = "id", column = @Column(name = "OWNER_ID"))
-    private AggregateId ownerId;
+    private ExternalAggregateId ownerId;
 
     @Embedded
     private MergedOrderPositions mergedOrderPositions;
 
-    public AcceptedOrder(CorrelatedOrderId correlatedOrderId, AggregateId ownerId, MergedOrderPositions mergedOrderPositions) {
+    public AcceptedOrder(CorrelatedOrderId correlatedOrderId, ExternalAggregateId ownerId, MergedOrderPositions mergedOrderPositions) {
         this.id = OrderStepId.generate();
         this.correlatedOrderId = correlatedOrderId;
         this.ownerId = ownerId;

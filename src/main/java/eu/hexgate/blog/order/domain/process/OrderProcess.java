@@ -1,6 +1,6 @@
 package eu.hexgate.blog.order.domain.process;
 
-import eu.hexgate.blog.order.AggregateId;
+import eu.hexgate.blog.order.ExternalAggregateId;
 import eu.hexgate.blog.order.domain.CorrelatedOrderId;
 import eu.hexgate.blog.order.domain.OrderStepId;
 import eu.hexgate.blog.order.dto.OrderStatusException;
@@ -14,7 +14,7 @@ import java.util.function.Supplier;
 public class OrderProcess {
 
     @EmbeddedId
-    private AggregateId id;
+    private ExternalAggregateId id;
 
     @Embedded
     @AttributeOverride(name = "id", column = @Column(name = "STEP_ID"))
@@ -28,7 +28,7 @@ public class OrderProcess {
 
     private int step;
 
-    private OrderProcess(AggregateId id, OrderStepId stepId, CorrelatedOrderId correlatedOrderId, OrderStatus status, int step) {
+    private OrderProcess(ExternalAggregateId id, OrderStepId stepId, CorrelatedOrderId correlatedOrderId, OrderStatus status, int step) {
         this.id = id;
         this.stepId = stepId;
         this.correlatedOrderId = correlatedOrderId;
@@ -41,7 +41,7 @@ public class OrderProcess {
     }
 
     public static OrderProcess first(OrderProcessStep orderProcessStep) {
-        return new OrderProcess(AggregateId.generate(), orderProcessStep.getStepId(), orderProcessStep.getCorrelatedOrderId(), orderProcessStep.getStatus(), 0);
+        return new OrderProcess(ExternalAggregateId.generate(), orderProcessStep.getStepId(), orderProcessStep.getCorrelatedOrderId(), orderProcessStep.getStatus(), 0);
     }
 
     public Routing routing() {
@@ -57,7 +57,7 @@ public class OrderProcess {
     }
 
     private OrderProcess next(OrderStatus status, OrderStepId stepId) {
-        return new OrderProcess(AggregateId.generate(), stepId, correlatedOrderId, status, step + 1);
+        return new OrderProcess(ExternalAggregateId.generate(), stepId, correlatedOrderId, status, step + 1);
     }
 
     public class Routing {

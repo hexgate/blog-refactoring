@@ -1,6 +1,6 @@
 package eu.hexgate.blog.order.domain.accepted;
 
-import eu.hexgate.blog.order.AggregateId;
+import eu.hexgate.blog.order.ExternalAggregateId;
 import eu.hexgate.blog.order.domain.CorrelatedOrderId;
 import eu.hexgate.blog.order.domain.MergedOrderPositions;
 import eu.hexgate.blog.order.domain.draft.DraftOrder;
@@ -19,11 +19,11 @@ public class UpdateAcceptedOrderPositionsResult {
         this.draftOrder = draftOrder;
     }
 
-    public static UpdateAcceptedOrderPositionsResult accepted(CorrelatedOrderId correlatedOrderId, AggregateId ownerId, MergedOrderPositions mergedOrderPositions) {
+    public static UpdateAcceptedOrderPositionsResult accepted(CorrelatedOrderId correlatedOrderId, ExternalAggregateId ownerId, MergedOrderPositions mergedOrderPositions) {
         return new UpdateAcceptedOrderPositionsResult(new AcceptedOrder(correlatedOrderId, ownerId, mergedOrderPositions), null);
     }
 
-    public static UpdateAcceptedOrderPositionsResult draft(CorrelatedOrderId correlatedOrderId, AggregateId ownerId, MergedOrderPositions mergedOrderPositions) {
+    public static UpdateAcceptedOrderPositionsResult draft(CorrelatedOrderId correlatedOrderId, ExternalAggregateId ownerId, MergedOrderPositions mergedOrderPositions) {
         return new UpdateAcceptedOrderPositionsResult(null, new DraftOrder(correlatedOrderId, ownerId, mergedOrderPositions));
     }
 

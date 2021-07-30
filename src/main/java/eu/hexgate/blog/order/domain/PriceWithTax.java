@@ -19,10 +19,14 @@ public class PriceWithTax {
     }
 
     public static PriceWithTax of(Price price, Tax tax) {
-        return new PriceWithTax(price.asBigDecimal().multiply(tax.asBigDecimal()));
+        return new PriceWithTax(price.asBigDecimal().multiply(tax.asFactor()));
     }
 
     public PriceWithTax add(Price price) {
         return new PriceWithTax(value.add(price.asBigDecimal()));
+    }
+
+    public BigDecimal asBigDecimal() {
+        return value;
     }
 }

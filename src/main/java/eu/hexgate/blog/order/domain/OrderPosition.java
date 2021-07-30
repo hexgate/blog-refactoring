@@ -1,6 +1,6 @@
 package eu.hexgate.blog.order.domain;
 
-import eu.hexgate.blog.order.AggregateId;
+import eu.hexgate.blog.order.ExternalAggregateId;
 
 import javax.persistence.AttributeOverride;
 import javax.persistence.Column;
@@ -13,12 +13,12 @@ public class OrderPosition {
 
     @Embedded
     @AttributeOverride(name = "id", column = @Column(name = "PRODUCT_ID"))
-    private AggregateId productId;
+    private ExternalAggregateId productId;
 
     @Embedded
     private Quantity quantity;
 
-    public OrderPosition(AggregateId productId, Quantity quantity) {
+    public OrderPosition(ExternalAggregateId productId, Quantity quantity) {
         this.productId = productId;
         this.quantity = quantity;
     }
@@ -27,7 +27,7 @@ public class OrderPosition {
         // jpa only
     }
 
-    public AggregateId getProductId() {
+    public ExternalAggregateId getProductId() {
         return productId;
     }
 

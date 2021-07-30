@@ -17,27 +17,23 @@ public class OrderDto {
     private BigDecimal basePrice;
 
     @JsonSerialize(using = MoneySerializer.class)
-    private BigDecimal estimateTotalPrice;
+    private BigDecimal estimatedTotalPrice;
 
     @JsonSerialize(using = MoneySerializer.class)
     private BigDecimal confirmedTotalPrice;
 
     private List<OrderPositionDto> positions;
 
-    public OrderDto(String id, OrderStatus status, BigDecimal basePrice, BigDecimal estimateTotalPrice, BigDecimal confirmedTotalPrice, List<OrderPositionDto> positions) {
+    public OrderDto(String id, OrderStatus status, BigDecimal basePrice, BigDecimal estimatedTotalPrice, BigDecimal confirmedTotalPrice, List<OrderPositionDto> positions) {
         this.id = id;
         this.status = status;
         this.basePrice = basePrice;
-        this.estimateTotalPrice = estimateTotalPrice;
+        this.estimatedTotalPrice = estimatedTotalPrice;
         this.confirmedTotalPrice = confirmedTotalPrice;
         this.positions = positions;
     }
 
     public OrderDto() {
-    }
-
-    public OrderDto(String id) {
-        this.id = id;
     }
 
     public String getId() {
@@ -52,8 +48,8 @@ public class OrderDto {
         return basePrice;
     }
 
-    public BigDecimal getEstimateTotalPrice() {
-        return estimateTotalPrice;
+    public BigDecimal getEstimatedTotalPrice() {
+        return estimatedTotalPrice;
     }
 
     public BigDecimal getConfirmedTotalPrice() {

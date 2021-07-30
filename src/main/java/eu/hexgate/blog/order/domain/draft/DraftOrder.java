@@ -1,6 +1,6 @@
 package eu.hexgate.blog.order.domain.draft;
 
-import eu.hexgate.blog.order.AggregateId;
+import eu.hexgate.blog.order.ExternalAggregateId;
 import eu.hexgate.blog.order.domain.CorrelatedOrderId;
 import eu.hexgate.blog.order.domain.MergedOrderPositions;
 import eu.hexgate.blog.order.domain.OrderStepId;
@@ -22,12 +22,12 @@ public class DraftOrder implements OrderProcessStep {
 
     @Embedded
     @AttributeOverride(name = "id", column = @Column(name = "OWNER_ID"))
-    private AggregateId ownerId;
+    private ExternalAggregateId ownerId;
 
     @Embedded
     private MergedOrderPositions mergedOrderPositions;
 
-    public DraftOrder(CorrelatedOrderId correlatedOrderId, AggregateId ownerId, MergedOrderPositions mergedOrderPositions) {
+    public DraftOrder(CorrelatedOrderId correlatedOrderId, ExternalAggregateId ownerId, MergedOrderPositions mergedOrderPositions) {
         this.id = OrderStepId.generate();
         this.correlatedOrderId = correlatedOrderId;
         this.ownerId = ownerId;

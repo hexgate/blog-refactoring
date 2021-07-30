@@ -49,4 +49,14 @@ create TABLE ORDER_PROCESS (
   STEP NUMERIC
 );
 
-
+create view ORDER_POSITION_VIEW as
+(
+    select
+    op.order_id as order_id,
+    op.product_id as product_id,
+    op.quantity as quantity,
+    p.name as product_name,
+    p.price as price
+    from order_position op
+    inner join product p on p.id = op.product_id
+);

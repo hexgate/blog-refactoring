@@ -21,4 +21,8 @@ public class Tax {
     public BigDecimal asBigDecimal() {
         return value;
     }
+
+    public BigDecimal asFactor() {
+        return value.add(BigDecimal.ONE);
+    }
 }

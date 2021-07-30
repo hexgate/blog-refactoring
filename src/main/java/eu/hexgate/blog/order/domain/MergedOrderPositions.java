@@ -1,29 +1,23 @@
 package eu.hexgate.blog.order.domain;
 
-import eu.hexgate.blog.order.AggregateId;
+import eu.hexgate.blog.order.ExternalAggregateId;
 import eu.hexgate.blog.order.domain.confirmed.ProductPriceRegistry;
 import eu.hexgate.blog.order.domain.confirmed.ProductPriceRegistryFetcher;
 import eu.hexgate.blog.order.forms.OrderPositionForm;
 
-import javax.persistence.CollectionTable;
-import javax.persistence.ElementCollection;
-import javax.persistence.Embeddable;
-import javax.persistence.JoinColumn;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import javax.persistence.*;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Embeddable
 public class MergedOrderPositions {
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(
             name = "ORDER_POSITION",
             joinColumns = @JoinColumn(name = "ORDER_ID")
     )
-    private Set<OrderPosition> positions;
+    private Set<OrderPosition> positions = new HashSet<>();
 
     private MergedOrderPositions() {
         // jpa only
@@ -71,7 +65,7 @@ public class MergedOrderPositions {
     }
 
     public Price calculateBasePrice(ProductPriceRegistryFetcher productPriceRegistryFetcher) {
-        final Set<AggregateId> ids = positions.stream()
+        final Set<ExternalAggregateId> ids = positions.stream()
                 .map(OrderPosition::getProductId)
                 .collect(Collectors.toSet());
 
@@ -84,7 +78,7 @@ public class MergedOrderPositions {
     }
 
     private static OrderPosition createOrderPosition(OrderPositionForm orderPositionForm) {
-        return new OrderPosition(AggregateId.fromString(orderPositionForm.getProductId()), Quantity.of(orderPositionForm.getQuantity()));
+        return new OrderPosition(ExternalAggregateId.fromString(orderPositionForm.getProductId()), Quantity.of(orderPositionForm.getQuantity()));
     }
 
     private static Set<OrderPositionForm> merge(List<OrderPositionForm> positions) {
