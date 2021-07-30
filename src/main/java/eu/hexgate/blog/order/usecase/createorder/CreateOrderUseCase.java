@@ -1,6 +1,6 @@
 package eu.hexgate.blog.order.usecase.createorder;
 
-import eu.hexgate.blog.order.ExternalAggregateId;
+import eu.hexgate.blog.order.AggregateId;
 import eu.hexgate.blog.order.domain.CorrelatedOrderId;
 import eu.hexgate.blog.order.domain.MergedOrderPositions;
 import eu.hexgate.blog.order.domain.draft.DraftOrder;
@@ -33,7 +33,7 @@ public class CreateOrderUseCase implements UseCase<CreateOrderCommand> {
     @Override
     public String execute(CreateOrderCommand command) {
         final MergedOrderPositions mergedOrderPositions = MergedOrderPositions.of(command.getPositions());
-        final ExternalAggregateId ownerId = ExternalAggregateId.fromString(command.getUserId());
+        final AggregateId ownerId = AggregateId.fromString(command.getUserId());
         final OrderProcessStep orderProcessStep = userService.isVip(command.getUserId()) ?
                 createVipOrder(mergedOrderPositions, ownerId) :
                 createDraftOrder(mergedOrderPositions, ownerId);
@@ -41,7 +41,7 @@ public class CreateOrderUseCase implements UseCase<CreateOrderCommand> {
         return orderProcessService.createAndSave(orderProcessStep);
     }
 
-    private OrderProcessStep createVipOrder(MergedOrderPositions mergedOrderPositions, ExternalAggregateId ownerId) {
+    private OrderProcessStep createVipOrder(MergedOrderPositions mergedOrderPositions, AggregateId ownerId) {
         final VipOrder vipOrder = new VipOrder(
                 CorrelatedOrderId.generate(),
                 ownerId,
@@ -51,7 +51,7 @@ public class CreateOrderUseCase implements UseCase<CreateOrderCommand> {
         return vipOrderRepository.save(vipOrder);
     }
 
-    private OrderProcessStep createDraftOrder(MergedOrderPositions mergedOrderPositions, ExternalAggregateId ownerId) {
+    private OrderProcessStep createDraftOrder(MergedOrderPositions mergedOrderPositions, AggregateId ownerId) {
         final DraftOrder draftOrder = new DraftOrder(
                 CorrelatedOrderId.generate(),
                 ownerId,

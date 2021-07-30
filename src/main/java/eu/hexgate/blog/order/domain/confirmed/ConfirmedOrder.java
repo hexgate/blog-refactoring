@@ -1,6 +1,6 @@
 package eu.hexgate.blog.order.domain.confirmed;
 
-import eu.hexgate.blog.order.ExternalAggregateId;
+import eu.hexgate.blog.order.AggregateId;
 import eu.hexgate.blog.order.domain.PriceWithTax;
 import eu.hexgate.blog.order.domain.CorrelatedOrderId;
 import eu.hexgate.blog.order.domain.OrderStepId;
@@ -21,12 +21,12 @@ public class ConfirmedOrder implements OrderProcessStep {
 
     @Embedded
     @AttributeOverride(name = "id", column = @Column(name = "OWNER_ID"))
-    private ExternalAggregateId ownerId;
+    private AggregateId ownerId;
 
     @Embedded
     private PriceWithTax confirmedTotalPrice; // todo refactor
 
-    public ConfirmedOrder(CorrelatedOrderId correlatedOrderId, ExternalAggregateId ownerId, PriceWithTax confirmedTotalPrice) {
+    public ConfirmedOrder(CorrelatedOrderId correlatedOrderId, AggregateId ownerId, PriceWithTax confirmedTotalPrice) {
         this.id = OrderStepId.generate();
         this.correlatedOrderId = correlatedOrderId;
         this.ownerId = ownerId;

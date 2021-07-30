@@ -9,24 +9,24 @@ import java.util.UUID;
 
 @Embeddable
 @Access(AccessType.FIELD)
-public class ExternalAggregateId implements Serializable, Comparable<ExternalAggregateId> {
+public class AggregateId implements Serializable, Comparable<AggregateId> {
 
     private String id;
 
-    private ExternalAggregateId() {
+    private AggregateId() {
         // jpa only
     }
 
-    private ExternalAggregateId(String id) {
+    private AggregateId(String id) {
         this.id = id;
     }
 
-    public static ExternalAggregateId generate() {
-        return new ExternalAggregateId(UUID.randomUUID().toString());
+    public static AggregateId generate() {
+        return new AggregateId(UUID.randomUUID().toString());
     }
 
-    public static ExternalAggregateId fromString(String id) {
-        return new ExternalAggregateId(Objects.requireNonNull(id));
+    public static AggregateId fromString(String id) {
+        return new AggregateId(Objects.requireNonNull(id));
     }
 
     public String asString() {
@@ -37,7 +37,7 @@ public class ExternalAggregateId implements Serializable, Comparable<ExternalAgg
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        ExternalAggregateId that = (ExternalAggregateId) o;
+        AggregateId that = (AggregateId) o;
         return Objects.equals(id, that.id);
     }
 
@@ -47,7 +47,7 @@ public class ExternalAggregateId implements Serializable, Comparable<ExternalAgg
     }
 
     @Override
-    public int compareTo(ExternalAggregateId o) {
+    public int compareTo(AggregateId o) {
         return id.compareTo(o.id);
     }
 }

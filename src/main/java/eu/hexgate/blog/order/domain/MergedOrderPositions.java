@@ -1,6 +1,6 @@
 package eu.hexgate.blog.order.domain;
 
-import eu.hexgate.blog.order.ExternalAggregateId;
+import eu.hexgate.blog.order.AggregateId;
 import eu.hexgate.blog.order.domain.confirmed.ProductPriceRegistry;
 import eu.hexgate.blog.order.domain.confirmed.ProductPriceRegistryFetcher;
 import eu.hexgate.blog.order.forms.OrderPositionForm;
@@ -65,7 +65,7 @@ public class MergedOrderPositions {
     }
 
     public Price calculateBasePrice(ProductPriceRegistryFetcher productPriceRegistryFetcher) {
-        final Set<ExternalAggregateId> ids = positions.stream()
+        final Set<AggregateId> ids = positions.stream()
                 .map(OrderPosition::getProductId)
                 .collect(Collectors.toSet());
 
@@ -78,7 +78,7 @@ public class MergedOrderPositions {
     }
 
     private static OrderPosition createOrderPosition(OrderPositionForm orderPositionForm) {
-        return new OrderPosition(ExternalAggregateId.fromString(orderPositionForm.getProductId()), Quantity.of(orderPositionForm.getQuantity()));
+        return new OrderPosition(AggregateId.fromString(orderPositionForm.getProductId()), Quantity.of(orderPositionForm.getQuantity()));
     }
 
     private static Set<OrderPositionForm> merge(List<OrderPositionForm> positions) {

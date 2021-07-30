@@ -1,6 +1,6 @@
 package eu.hexgate.blog.order.domain.vip;
 
-import eu.hexgate.blog.order.ExternalAggregateId;
+import eu.hexgate.blog.order.AggregateId;
 import eu.hexgate.blog.order.domain.CorrelatedOrderId;
 import eu.hexgate.blog.order.domain.MergedOrderPositions;
 import eu.hexgate.blog.order.domain.OrderStepId;
@@ -23,12 +23,12 @@ public class VipOrder implements OrderProcessStep {
 
     @Embedded
     @AttributeOverride(name = "id", column = @Column(name = "OWNER_ID"))
-    private ExternalAggregateId ownerId;
+    private AggregateId ownerId;
 
     @Embedded
     private MergedOrderPositions mergedOrderPositions;
 
-    public VipOrder(CorrelatedOrderId correlatedOrderId, ExternalAggregateId ownerId, MergedOrderPositions mergedOrderPositions) {
+    public VipOrder(CorrelatedOrderId correlatedOrderId, AggregateId ownerId, MergedOrderPositions mergedOrderPositions) {
         this.id = OrderStepId.generate();
         this.correlatedOrderId = correlatedOrderId;
         this.ownerId = ownerId;

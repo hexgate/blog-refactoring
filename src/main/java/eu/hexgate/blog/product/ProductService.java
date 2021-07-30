@@ -1,6 +1,6 @@
 package eu.hexgate.blog.product;
 
-import eu.hexgate.blog.order.ExternalAggregateId;
+import eu.hexgate.blog.order.AggregateId;
 import eu.hexgate.blog.order.domain.confirmed.ProductPriceRegistry;
 import eu.hexgate.blog.order.domain.confirmed.ProductPriceRegistryFetcher;
 import eu.hexgate.blog.order.forms.ProductForm;
@@ -20,9 +20,9 @@ public class ProductService implements ProductPriceRegistryFetcher {
     }
 
     @Override
-    public ProductPriceRegistry load(Set<ExternalAggregateId> productIds) {
+    public ProductPriceRegistry load(Set<AggregateId> productIds) {
         final Set<String> ids = productIds.stream()
-                .map(ExternalAggregateId::asString)
+                .map(AggregateId::asString)
                 .collect(Collectors.toSet());
 
         return ProductPriceRegistry.fromProductPriceSet(fetchProductWithPrice(ids));
