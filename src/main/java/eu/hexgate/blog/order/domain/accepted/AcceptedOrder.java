@@ -1,14 +1,11 @@
 package eu.hexgate.blog.order.domain.accepted;
 
 import eu.hexgate.blog.order.ExternalAggregateId;
-import eu.hexgate.blog.order.domain.Price;
-import eu.hexgate.blog.order.domain.PriceWithTax;
-import eu.hexgate.blog.order.domain.Tax;
 import eu.hexgate.blog.order.domain.CorrelatedOrderId;
 import eu.hexgate.blog.order.domain.MergedOrderPositions;
 import eu.hexgate.blog.order.domain.OrderStepId;
+import eu.hexgate.blog.order.domain.TotalPriceCalculator;
 import eu.hexgate.blog.order.domain.confirmed.ConfirmedOrder;
-import eu.hexgate.blog.order.domain.confirmed.ProductPriceRegistryFetcher;
 import eu.hexgate.blog.order.domain.draft.DraftOrder;
 import eu.hexgate.blog.order.domain.process.OrderProcessStep;
 import eu.hexgate.blog.order.domain.process.OrderStatus;
@@ -53,12 +50,8 @@ public class AcceptedOrder implements OrderProcessStep {
         return new DraftOrder(correlatedOrderId, ownerId, mergedOrderPositions);
     }
 
-    public ConfirmedOrder confirm(Price shippingPrice, Tax tax, ProductPriceRegistryFetcher productPriceRegistryFetcher) {
-        final PriceWithTax totalPriceWithTax = mergedOrderPositions.calculateBasePrice(productPriceRegistryFetcher)
-                .withTax(tax)
-                .add(shippingPrice);
-
-        return new ConfirmedOrder(correlatedOrderId, ownerId, totalPriceWithTax);
+    public ConfirmedOrder confirm(TotalPriceCalculator totalPriceCalculator) {
+        return new ConfirmedOrder(correlatedOrderId, ownerId, totalPriceCalculator.calculate(mergedOrderPositions));
     }
 
     public CorrelatedOrderId getCorrelatedOrderId() {

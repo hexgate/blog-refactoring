@@ -1,10 +1,9 @@
 package eu.hexgate.blog.order.usecase.confirmorder;
 
-import eu.hexgate.blog.externalmodules.ShippingService;
-import eu.hexgate.blog.externalmodules.TaxService;
 import eu.hexgate.blog.order.domain.CorrelatedOrderId;
 import eu.hexgate.blog.order.domain.Price;
 import eu.hexgate.blog.order.domain.Tax;
+import eu.hexgate.blog.order.domain.TotalPriceCalculator;
 import eu.hexgate.blog.order.domain.accepted.AcceptedOrder;
 import eu.hexgate.blog.order.domain.accepted.AcceptedOrderRepository;
 import eu.hexgate.blog.order.domain.confirmed.ConfirmedOrder;
@@ -30,18 +29,14 @@ public class ConfirmOrderUseCase implements UseCase<ConfirmOrderCommand> {
     private final AcceptedOrderRepository acceptedOrderRepository;
     private final VipOrderRepository vipOrderRepository;
     private final ConfirmedOrderRepository confirmedOrderRepository;
-    private final ProductService productService;
-    private final TaxService taxService;
-    private final ShippingService shippingService;
+    private final TotalPriceCalculator totalPriceCalculator;
 
-    public ConfirmOrderUseCase(OrderProcessService orderProcessService, AcceptedOrderRepository acceptedOrderRepository, VipOrderRepository vipOrderRepository, ConfirmedOrderRepository confirmedOrderRepository, ProductService productService, TaxService taxService, ShippingService shippingService) {
+    public ConfirmOrderUseCase(OrderProcessService orderProcessService, AcceptedOrderRepository acceptedOrderRepository, VipOrderRepository vipOrderRepository, ConfirmedOrderRepository confirmedOrderRepository, TotalPriceCalculator totalPriceCalculator) {
         this.orderProcessService = orderProcessService;
         this.acceptedOrderRepository = acceptedOrderRepository;
         this.vipOrderRepository = vipOrderRepository;
         this.confirmedOrderRepository = confirmedOrderRepository;
-        this.productService = productService;
-        this.taxService = taxService;
-        this.shippingService = shippingService;
+        this.totalPriceCalculator = totalPriceCalculator;
     }
 
     @Override
@@ -63,10 +58,7 @@ public class ConfirmOrderUseCase implements UseCase<ConfirmOrderCommand> {
         final AcceptedOrder acceptedOrder = acceptedOrderRepository.findById(orderProcess.getStepId())
                 .orElseThrow(() -> new OrderNotFoundException(orderProcess.getCorrelatedOrderId()));
 
-        final Price shippingPrice = Price.of(shippingService.getCurrentShippingPrice());
-        final Tax tax = Tax.asDecimalValue(taxService.gerCurrentTax());
-
-        final ConfirmedOrder confirmedOrder = acceptedOrder.confirm(shippingPrice, tax, productService);
+        final ConfirmedOrder confirmedOrder = acceptedOrder.confirm(totalPriceCalculator);
         return confirmedOrderRepository.save(confirmedOrder);
     }
 
@@ -74,10 +66,7 @@ public class ConfirmOrderUseCase implements UseCase<ConfirmOrderCommand> {
         final VipOrder vipOrder = vipOrderRepository.findById(orderProcess.getStepId())
                 .orElseThrow(() -> new OrderNotFoundException(orderProcess.getCorrelatedOrderId()));
 
-        final Price shippingPrice = Price.of(shippingService.getCurrentShippingPrice());
-        final Tax tax = Tax.asDecimalValue(taxService.gerCurrentTax());
-
-        final ConfirmedOrder confirmedOrder = vipOrder.confirm(shippingPrice, tax, productService);
+        final ConfirmedOrder confirmedOrder = vipOrder.confirm(totalPriceCalculator);
         return confirmedOrderRepository.save(confirmedOrder);
     }
 
