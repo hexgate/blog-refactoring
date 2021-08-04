@@ -54,6 +54,7 @@ public class AcceptedOrder implements OrderProcessStep {
         return new ConfirmedOrder(correlatedOrderId, ownerId, totalPriceCalculator.calculate(mergedOrderPositions));
     }
 
+    @Override
     public CorrelatedOrderId getCorrelatedOrderId() {
         return correlatedOrderId;
     }

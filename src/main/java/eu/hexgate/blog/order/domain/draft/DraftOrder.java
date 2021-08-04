@@ -46,6 +46,7 @@ public class DraftOrder implements OrderProcessStep {
         return new AcceptedOrder(correlatedOrderId, ownerId, mergedOrderPositions);
     }
 
+    @Override
     public CorrelatedOrderId getCorrelatedOrderId() {
         return correlatedOrderId;
     }
