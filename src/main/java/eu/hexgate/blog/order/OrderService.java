@@ -12,6 +12,8 @@ import eu.hexgate.blog.user.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -79,7 +81,7 @@ public class OrderService {
     }
 
     private Set<OrderPosition> mergeOrderPositions(OrderForm orderForm) {
-        return OrderPositionUtils.merge(orderForm.getPositions())
+        return merge(orderForm.getPositions())
                 .stream()
                 .map(this::createOrderPosition)
                 .collect(Collectors.toSet());
@@ -93,5 +95,22 @@ public class OrderService {
     private OrderDto saveAndGetDto(Order order) {
         return orderRepository.save(order)
                 .dto(taxService.gerCurrentTax(), shippingService.getCurrentShippingPrice());
+    }
+
+    private Set<OrderPositionForm> merge(List<OrderPositionForm> positions) {
+        return positions.stream()
+                .collect(Collectors.groupingBy(OrderPositionForm::getProductId))
+                .values()
+                .stream()
+                .map(this::reduce)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(Collectors.toSet());
+    }
+
+    private Optional<OrderPositionForm> reduce(List<OrderPositionForm> positions) {
+        return positions.stream()
+                .reduce((orderPositionForm, orderPositionForm2) ->
+                        new OrderPositionForm(orderPositionForm.getProductId(), orderPositionForm.getQuantity() + orderPositionForm2.getQuantity()));
     }
 }

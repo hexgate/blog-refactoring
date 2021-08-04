@@ -11,17 +11,6 @@ import java.util.stream.Collectors;
 
 public class OrderPositionUtils {
 
-    public static Set<OrderPositionForm> merge(List<OrderPositionForm> positions) {
-        return positions.stream()
-                .collect(Collectors.groupingBy(OrderPositionForm::getProductId))
-                .values()
-                .stream()
-                .map(OrderPositionUtils::reduce)
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .collect(Collectors.toSet());
-    }
-
     public static boolean anyChanges(Set<OrderPosition> before, Set<OrderPosition> after) {
         if (before.size() != after.size()) {
             return true;
@@ -45,12 +34,6 @@ public class OrderPositionUtils {
         }
 
         return false;
-    }
-
-    private static Optional<OrderPositionForm> reduce(List<OrderPositionForm> positions) {
-        return positions.stream()
-                .reduce((orderPositionForm, orderPositionForm2) ->
-                        new OrderPositionForm(orderPositionForm.getProductId(), orderPositionForm.getQuantity() + orderPositionForm2.getQuantity()));
     }
 
     private static boolean areDifferent(OrderPositionDto before, OrderPositionDto after) {
