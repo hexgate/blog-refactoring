@@ -1,7 +1,7 @@
 package eu.hexgate.blog.order.dto;
 
 import eu.hexgate.blog.order.domain.CorrelatedOrderId;
-import eu.hexgate.blog.order.domain.process.OrderStatus;
+import eu.hexgate.blog.order.usecase.process.OrderStatus;
 
 public class OrderStatusException extends RuntimeException {
     private final String orderId;

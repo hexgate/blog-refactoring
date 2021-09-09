@@ -7,8 +7,8 @@ import eu.hexgate.blog.order.domain.OrderStepId;
 import eu.hexgate.blog.order.domain.TotalPriceCalculator;
 import eu.hexgate.blog.order.domain.confirmed.ConfirmedOrder;
 import eu.hexgate.blog.order.domain.draft.DraftOrder;
-import eu.hexgate.blog.order.domain.process.OrderProcessStep;
-import eu.hexgate.blog.order.domain.process.OrderStatus;
+import eu.hexgate.blog.order.usecase.process.OrderProcessStep;
+import eu.hexgate.blog.order.usecase.process.OrderStatus;
 
 import javax.persistence.*;
 

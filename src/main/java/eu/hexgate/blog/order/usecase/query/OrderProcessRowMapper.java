@@ -1,6 +1,6 @@
 package eu.hexgate.blog.order.usecase.query;
 
-import eu.hexgate.blog.order.domain.process.OrderStatus;
+import eu.hexgate.blog.order.usecase.process.OrderStatus;
 import org.springframework.jdbc.core.RowMapper;
 
 import java.sql.ResultSet;

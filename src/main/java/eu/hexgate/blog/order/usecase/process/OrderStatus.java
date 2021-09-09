@@ -1,4 +1,4 @@
-package eu.hexgate.blog.order.domain.process;
+package eu.hexgate.blog.order.usecase.process;
 
 public enum OrderStatus {
 

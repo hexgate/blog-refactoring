@@ -1,4 +1,4 @@
-package eu.hexgate.blog.order.domain.process;
+package eu.hexgate.blog.order.usecase.process;
 
 import eu.hexgate.blog.order.AggregateId;
 import eu.hexgate.blog.order.domain.CorrelatedOrderId;

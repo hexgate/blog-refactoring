@@ -4,7 +4,7 @@ import eu.hexgate.blog.order.AggregateId;
 import eu.hexgate.blog.order.domain.CorrelatedOrderId;
 import eu.hexgate.blog.order.domain.MergedOrderPositions;
 import eu.hexgate.blog.order.domain.draft.DraftOrder;
-import eu.hexgate.blog.order.domain.process.OrderProcessStep;
+import eu.hexgate.blog.order.usecase.process.OrderProcessStep;
 
 import java.util.Objects;
 import java.util.function.Function;

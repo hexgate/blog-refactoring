@@ -5,8 +5,8 @@ import eu.hexgate.blog.order.domain.CorrelatedOrderId;
 import eu.hexgate.blog.order.domain.MergedOrderPositions;
 import eu.hexgate.blog.order.domain.OrderStepId;
 import eu.hexgate.blog.order.domain.accepted.AcceptedOrder;
-import eu.hexgate.blog.order.domain.process.OrderProcessStep;
-import eu.hexgate.blog.order.domain.process.OrderStatus;
+import eu.hexgate.blog.order.usecase.process.OrderProcessStep;
+import eu.hexgate.blog.order.usecase.process.OrderStatus;
 
 import javax.persistence.*;
 

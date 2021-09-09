@@ -1,23 +1,20 @@
 package eu.hexgate.blog.order.usecase.confirmorder;
 
 import eu.hexgate.blog.order.domain.CorrelatedOrderId;
-import eu.hexgate.blog.order.domain.Price;
-import eu.hexgate.blog.order.domain.Tax;
 import eu.hexgate.blog.order.domain.TotalPriceCalculator;
 import eu.hexgate.blog.order.domain.accepted.AcceptedOrder;
 import eu.hexgate.blog.order.domain.accepted.AcceptedOrderRepository;
 import eu.hexgate.blog.order.domain.confirmed.ConfirmedOrder;
 import eu.hexgate.blog.order.domain.confirmed.ConfirmedOrderRepository;
-import eu.hexgate.blog.order.domain.process.OrderProcess;
-import eu.hexgate.blog.order.domain.process.OrderProcessService;
-import eu.hexgate.blog.order.domain.process.OrderProcessStep;
-import eu.hexgate.blog.order.domain.process.OrderStatus;
+import eu.hexgate.blog.order.usecase.process.OrderProcess;
+import eu.hexgate.blog.order.usecase.process.OrderProcessService;
+import eu.hexgate.blog.order.usecase.process.OrderProcessStep;
+import eu.hexgate.blog.order.usecase.process.OrderStatus;
 import eu.hexgate.blog.order.domain.vip.VipOrder;
 import eu.hexgate.blog.order.domain.vip.VipOrderRepository;
 import eu.hexgate.blog.order.dto.OrderNotFoundException;
 import eu.hexgate.blog.order.dto.OrderStatusException;
 import eu.hexgate.blog.order.usecase.UseCase;
-import eu.hexgate.blog.product.ProductService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
