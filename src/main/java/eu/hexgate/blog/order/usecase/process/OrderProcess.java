@@ -6,7 +6,10 @@ import eu.hexgate.blog.order.domain.OrderStepId;
 import eu.hexgate.blog.order.dto.OrderStatusException;
 
 import javax.persistence.*;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 @Entity
@@ -61,54 +64,21 @@ public class OrderProcess {
     }
 
     public class Routing {
-        private Supplier<OrderProcessStep> handleDraft;
-        private Supplier<OrderProcessStep> handleAccepted;
-        private Supplier<OrderProcessStep> handleVip;
-        private Supplier<OrderProcessStep> handleConfirmed;
+
+        private final Map<OrderStatus, Supplier<OrderProcessStep>> handlersMap = new HashMap<>();
 
         private Routing() {
         }
 
-        public Routing handleDraft(Supplier<OrderProcessStep> handleDraft) {
-            this.handleDraft = handleDraft;
+        public Routing handle(OrderStatus orderStatus, Supplier<OrderProcessStep> handleDraft) {
+            handlersMap.put(orderStatus, handleDraft);
             return this;
         }
 
-        public Routing handleAccepted(Supplier<OrderProcessStep> handleAccepted) {
-            this.handleAccepted = handleAccepted;
-            return this;
-        }
-
-        public Routing handleVip(Supplier<OrderProcessStep> handleVip) {
-            this.handleVip = handleVip;
-            return this;
-        }
-
-        public Routing handleConfirmed(Supplier<OrderProcessStep> handleConfirmed) {
-            this.handleConfirmed = handleConfirmed;
-            return this;
-        }
-
-        public OrderProcess execute() {
-
-            OrderProcessStep orderProcessStep;
-
-            switch (status) {
-                case DRAFT:
-                    orderProcessStep = tryExecuteSupplier(handleDraft);
-                    break;
-                case ACCEPTED:
-                    orderProcessStep = tryExecuteSupplier(handleAccepted);
-                    break;
-                case VIP:
-                    orderProcessStep = tryExecuteSupplier(handleVip);
-                    break;
-                case CONFIRMED:
-                    orderProcessStep = tryExecuteSupplier(handleConfirmed);
-                    break;
-                default:
-                    throw new IllegalStateException("Invalid state");
-            }
+        public OrderProcess executeOrHandleOther(Function<OrderStatus, OrderProcessStep> handleOther) {
+            final OrderProcessStep orderProcessStep = Optional.ofNullable(handlersMap.get(status))
+                    .map(this::tryExecuteSupplier)
+                    .orElseGet(() -> handleOther.apply(status));
 
             return next(orderProcessStep.getStatus(), orderProcessStep.getStepId());
         }

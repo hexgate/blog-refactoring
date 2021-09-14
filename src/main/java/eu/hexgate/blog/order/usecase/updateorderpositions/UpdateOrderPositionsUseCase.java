@@ -41,13 +41,12 @@ public class UpdateOrderPositionsUseCase implements UseCase<UpdateOrderPositions
         final OrderProcess orderProcess = orderProcessService.findByCorrelatedId(orderId);
 
         final OrderProcess executed = orderProcess.routing()
-                .handleDraft(() -> updateDraft(orderProcess, mergedOrderPositions))
-                .handleAccepted(() -> updateAccepted(orderProcess, mergedOrderPositions))
-                .handleVip(() -> updateVip(orderProcess, mergedOrderPositions))
-                .handleConfirmed(() -> {
+                .handle(OrderStatus.DRAFT, () -> updateDraft(orderProcess, mergedOrderPositions))
+                .handle(OrderStatus.ACCEPTED, () -> updateAccepted(orderProcess, mergedOrderPositions))
+                .handle(OrderStatus.VIP, () -> updateVip(orderProcess, mergedOrderPositions))
+                .executeOrHandleOther(orderStatus -> {
                     throw new OrderStatusException(orderId, "Your order has already been confirmed.", OrderStatus.CONFIRMED);
-                })
-                .execute();
+                });
 
         return orderProcessService.save(executed);
     }

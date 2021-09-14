@@ -42,11 +42,9 @@ public class ConfirmOrderUseCase implements UseCase<ConfirmOrderCommand> {
         final OrderProcess orderProcess = orderProcessService.findByCorrelatedId(correlatedOrderId);
 
         final OrderProcess executed = orderProcess.routing()
-                .handleAccepted(() -> confirmAccepted(orderProcess))
-                .handleVip(() -> confirmVip(orderProcess))
-                .handleDraft(() -> error(correlatedOrderId, OrderStatus.DRAFT))
-                .handleConfirmed(() -> error(correlatedOrderId, OrderStatus.CONFIRMED))
-                .execute();
+                .handle(OrderStatus.ACCEPTED, () -> confirmAccepted(orderProcess))
+                .handle(OrderStatus.VIP, () -> confirmVip(orderProcess))
+                .executeOrHandleOther(orderStatus -> error(correlatedOrderId, orderStatus));
 
         return orderProcessService.save(executed);
     }

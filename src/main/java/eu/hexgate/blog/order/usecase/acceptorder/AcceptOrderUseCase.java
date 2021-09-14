@@ -5,13 +5,13 @@ import eu.hexgate.blog.order.domain.accepted.AcceptedOrder;
 import eu.hexgate.blog.order.domain.accepted.AcceptedOrderRepository;
 import eu.hexgate.blog.order.domain.draft.DraftOrder;
 import eu.hexgate.blog.order.domain.draft.DraftOrderRepository;
+import eu.hexgate.blog.order.dto.OrderNotFoundException;
+import eu.hexgate.blog.order.dto.OrderStatusException;
+import eu.hexgate.blog.order.usecase.UseCase;
 import eu.hexgate.blog.order.usecase.process.OrderProcess;
 import eu.hexgate.blog.order.usecase.process.OrderProcessService;
 import eu.hexgate.blog.order.usecase.process.OrderProcessStep;
 import eu.hexgate.blog.order.usecase.process.OrderStatus;
-import eu.hexgate.blog.order.usecase.UseCase;
-import eu.hexgate.blog.order.dto.OrderNotFoundException;
-import eu.hexgate.blog.order.dto.OrderStatusException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,11 +35,8 @@ public class AcceptOrderUseCase implements UseCase<AcceptOrderCommand> {
         final OrderProcess orderProcess = orderProcessService.findByCorrelatedId(correlatedOrderId);
 
         final OrderProcess executed = orderProcess.routing()
-                .handleDraft(() -> acceptDraft(orderProcess))
-                .handleAccepted(() -> error(correlatedOrderId, OrderStatus.ACCEPTED))
-                .handleVip(() -> error(correlatedOrderId, OrderStatus.VIP))
-                .handleConfirmed(() -> error(correlatedOrderId, OrderStatus.CONFIRMED))
-                .execute();
+                .handle(OrderStatus.DRAFT, () -> acceptDraft(orderProcess))
+                .executeOrHandleOther(orderStatus -> error(correlatedOrderId, orderStatus));
 
         return orderProcessService.save(executed);
     }

@@ -35,11 +35,8 @@ public class DeclineOrderUseCase implements UseCase<DeclineOrderCommand> {
         final OrderProcess orderProcess = orderProcessService.findByCorrelatedId(correlatedOrderId);
 
         final OrderProcess executed = orderProcess.routing()
-                .handleAccepted(() -> declineAccepted(orderProcess))
-                .handleDraft(() -> error(correlatedOrderId, OrderStatus.DRAFT))
-                .handleVip(() -> error(correlatedOrderId, OrderStatus.VIP))
-                .handleConfirmed(() -> error(correlatedOrderId, OrderStatus.CONFIRMED))
-                .execute();
+                .handle(OrderStatus.ACCEPTED, () -> declineAccepted(orderProcess))
+                .executeOrHandleOther(orderStatus -> error(correlatedOrderId, orderStatus));
 
         return orderProcessService.save(executed);
     }
