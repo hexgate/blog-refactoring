@@ -14,15 +14,16 @@ public class DomainErrorResolver {
             .notFound()
             .build();
 
+    private static final ResponseEntity<ErrorDto> DEFAULT_ERROR = ResponseEntity
+            .badRequest()
+            .build();
+
     private static final Map<DomainErrorCode, Function1<DomainError, ResponseEntity<ErrorDto>>> MAPPING = HashMap.of(
             DomainErrorCode.INVALID_ORDER_STATUS, domainError -> ResponseEntity
                     .badRequest()
                     .body(new ErrorDto(domainError.getMessage().getOrNull(), domainError.getAdditionalData().getOrNull())),
             DomainErrorCode.ORDER_NOT_FOUND, domainError -> NOT_FOUND
     );
-
-    private static final ResponseEntity<ErrorDto> DEFAULT_ERROR = ResponseEntity.badRequest()
-            .build();
 
     ResponseEntity<ErrorDto> resolve(final DomainError domainError) {
         return MAPPING.get(domainError.getCode())
