@@ -3,14 +3,15 @@ package eu.hexgate.blog.order.usecase.process;
 import eu.hexgate.blog.order.AggregateId;
 import eu.hexgate.blog.order.domain.CorrelatedOrderId;
 import eu.hexgate.blog.order.domain.OrderStepId;
-import eu.hexgate.blog.order.dto.OrderStatusException;
+import eu.hexgate.blog.order.domain.errors.DomainError;
+import eu.hexgate.blog.order.domain.errors.DomainErrorCode;
+import io.vavr.Function0;
+import io.vavr.collection.HashMap;
+import io.vavr.collection.Map;
+import io.vavr.control.Either;
 
 import javax.persistence.*;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.function.Supplier;
+
 
 @Entity
 @Table(name = "ORDER_PROCESS")
@@ -65,28 +66,31 @@ public class OrderProcess {
 
     public class Routing {
 
-        private final Map<OrderStatus, Supplier<OrderProcessStep>> handlersMap = new HashMap<>();
+        private Map<OrderStatus, Function0<Either<DomainError, OrderProcessStep>>> handlersMap = HashMap.empty();
 
         private Routing() {
         }
 
-        public Routing handle(OrderStatus orderStatus, Supplier<OrderProcessStep> handleDraft) {
-            handlersMap.put(orderStatus, handleDraft);
+        public Routing handle(OrderStatus orderStatus, Function0<Either<DomainError, OrderProcessStep>> handleDraft) {
+            handlersMap = handlersMap.put(orderStatus, handleDraft);
             return this;
         }
 
-        public OrderProcess executeOrHandleOther(Function<OrderStatus, OrderProcessStep> handleOther) {
-            final OrderProcessStep orderProcessStep = Optional.ofNullable(handlersMap.get(status))
+        public Either<DomainError, OrderProcess> executeOrError(DomainError error) {
+            return handlersMap.get(status)
                     .map(this::tryExecuteSupplier)
-                    .orElseGet(() -> handleOther.apply(status));
-
-            return next(orderProcessStep.getStatus(), orderProcessStep.getStepId());
+                    .getOrElse(() -> Either.left(error))
+                    .map(it -> next(it.getStatus(), it.getStepId()));
         }
 
-        private OrderProcessStep tryExecuteSupplier(Supplier<OrderProcessStep> supplier) {
-            return Optional.ofNullable(supplier)
-                    .map(Supplier::get)
-                    .orElseThrow(() -> new OrderStatusException(correlatedOrderId, "Your order has invalid status", status));
+        private Either<DomainError, OrderProcessStep> tryExecuteSupplier(Function0<Either<DomainError, OrderProcessStep>> supplier) {
+            return supplier.apply()
+                    .toEither(
+                            DomainError.withCode(DomainErrorCode.INVALID_ORDER_STATUS)
+                                    .withMessage("Your order has invalid status")
+                                    .withAdditionalData(correlatedOrderId.getId())
+                                    .build()
+                    );
         }
     }
 }

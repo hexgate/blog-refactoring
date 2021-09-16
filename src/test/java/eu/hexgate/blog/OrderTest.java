@@ -17,8 +17,7 @@ import java.util.List;
 import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -37,6 +36,7 @@ public class OrderTest {
         postNewOrder(VIP_USER_ID)
                 .andDo(print())
                 .andExpect(status().isCreated())
+                .andExpect(header().exists("location"))
                 .andExpect(jsonPath("$.id", notNullValue()))
                 .andExpect(jsonPath("$.status", is("VIP")))
                 .andExpect(jsonPath("$.basePrice", is("800.00")))

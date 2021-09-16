@@ -2,19 +2,18 @@ package eu.hexgate.blog.order.usecase.confirmorder;
 
 import eu.hexgate.blog.order.domain.CorrelatedOrderId;
 import eu.hexgate.blog.order.domain.TotalPriceCalculator;
-import eu.hexgate.blog.order.domain.accepted.AcceptedOrder;
 import eu.hexgate.blog.order.domain.accepted.AcceptedOrderRepository;
-import eu.hexgate.blog.order.domain.confirmed.ConfirmedOrder;
 import eu.hexgate.blog.order.domain.confirmed.ConfirmedOrderRepository;
+import eu.hexgate.blog.order.domain.errors.DomainError;
+import eu.hexgate.blog.order.domain.errors.DomainErrorCode;
+import eu.hexgate.blog.order.domain.vip.VipOrderRepository;
+import eu.hexgate.blog.order.usecase.UseCase;
 import eu.hexgate.blog.order.usecase.process.OrderProcess;
 import eu.hexgate.blog.order.usecase.process.OrderProcessService;
 import eu.hexgate.blog.order.usecase.process.OrderProcessStep;
 import eu.hexgate.blog.order.usecase.process.OrderStatus;
-import eu.hexgate.blog.order.domain.vip.VipOrder;
-import eu.hexgate.blog.order.domain.vip.VipOrderRepository;
-import eu.hexgate.blog.order.dto.OrderNotFoundException;
-import eu.hexgate.blog.order.dto.OrderStatusException;
-import eu.hexgate.blog.order.usecase.UseCase;
+import io.vavr.control.Either;
+import io.vavr.control.Option;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,35 +36,37 @@ public class ConfirmOrderUseCase implements UseCase<ConfirmOrderCommand> {
     }
 
     @Override
-    public String execute(ConfirmOrderCommand confirmOrderCommand) {
+    public Either<DomainError, String> execute(ConfirmOrderCommand confirmOrderCommand) {
         final CorrelatedOrderId correlatedOrderId = CorrelatedOrderId.fromString(confirmOrderCommand.getOrderId());
-        final OrderProcess orderProcess = orderProcessService.findByCorrelatedId(correlatedOrderId);
 
-        final OrderProcess executed = orderProcess.routing()
-                .handle(OrderStatus.ACCEPTED, () -> confirmAccepted(orderProcess))
-                .handle(OrderStatus.VIP, () -> confirmVip(orderProcess))
-                .executeOrHandleOther(orderStatus -> error(correlatedOrderId, orderStatus));
-
-        return orderProcessService.save(executed);
+        return orderProcessService.findByCorrelatedId(correlatedOrderId)
+                .flatMap(orderProcess -> orderProcess.routing()
+                        .handle(OrderStatus.ACCEPTED, () -> confirmAccepted(orderProcess))
+                        .handle(OrderStatus.VIP, () -> confirmVip(orderProcess))
+                        .executeOrError(DomainError
+                                .withCode(DomainErrorCode.INVALID_ORDER_STATUS)
+                                .withMessage("Your order is neither accepted nor vip.")
+                                .withAdditionalData(correlatedOrderId.getId())
+                                .build()
+                        )
+                        .map(orderProcessService::save));
     }
 
-    private OrderProcessStep confirmAccepted(OrderProcess orderProcess) {
-        final AcceptedOrder acceptedOrder = acceptedOrderRepository.findById(orderProcess.getStepId())
-                .orElseThrow(() -> new OrderNotFoundException(orderProcess.getCorrelatedOrderId()));
-
-        final ConfirmedOrder confirmedOrder = acceptedOrder.confirm(totalPriceCalculator);
-        return confirmedOrderRepository.save(confirmedOrder);
+    private Either<DomainError, OrderProcessStep> confirmAccepted(OrderProcess orderProcess) {
+        return Option.ofOptional(acceptedOrderRepository.findById(orderProcess.getStepId()))
+                .toEither(
+                        DomainError.orderNotFound(orderProcess.getCorrelatedOrderId().getId())
+                )
+                .map(acceptedOrder -> acceptedOrder.confirm(totalPriceCalculator))
+                .map(confirmedOrderRepository::save);
     }
 
-    private OrderProcessStep confirmVip(OrderProcess orderProcess) {
-        final VipOrder vipOrder = vipOrderRepository.findById(orderProcess.getStepId())
-                .orElseThrow(() -> new OrderNotFoundException(orderProcess.getCorrelatedOrderId()));
-
-        final ConfirmedOrder confirmedOrder = vipOrder.confirm(totalPriceCalculator);
-        return confirmedOrderRepository.save(confirmedOrder);
-    }
-
-    private OrderProcessStep error(CorrelatedOrderId orderId, OrderStatus orderStatus) {
-        throw new OrderStatusException(orderId, "Your order is neither accepted nor vip.", orderStatus);
+    private Either<DomainError, OrderProcessStep> confirmVip(OrderProcess orderProcess) {
+        return Option.ofOptional(vipOrderRepository.findById(orderProcess.getStepId()))
+                .toEither(
+                        DomainError.orderNotFound(orderProcess.getCorrelatedOrderId().getId())
+                )
+                .map(vipOrder -> vipOrder.confirm(totalPriceCalculator))
+                .map(confirmedOrderRepository::save);
     }
 }

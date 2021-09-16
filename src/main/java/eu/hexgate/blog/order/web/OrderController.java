@@ -1,7 +1,7 @@
 package eu.hexgate.blog.order.web;
 
-import eu.hexgate.blog.order.dto.OrderNotFoundException;
-import eu.hexgate.blog.order.dto.OrderStatusException;
+import eu.hexgate.blog.order.domain.errors.DomainError;
+import eu.hexgate.blog.order.forms.OrderForm;
 import eu.hexgate.blog.order.usecase.UseCase;
 import eu.hexgate.blog.order.usecase.acceptorder.AcceptOrderCommand;
 import eu.hexgate.blog.order.usecase.confirmorder.ConfirmOrderCommand;
@@ -9,9 +9,6 @@ import eu.hexgate.blog.order.usecase.createorder.CreateOrderCommand;
 import eu.hexgate.blog.order.usecase.declineorder.DeclineOrderCommand;
 import eu.hexgate.blog.order.usecase.query.OrderQueryService;
 import eu.hexgate.blog.order.usecase.updateorderpositions.UpdateOrderPositionsCommand;
-import eu.hexgate.blog.order.dto.ErrorDto;
-import eu.hexgate.blog.order.dto.OrderDto;
-import eu.hexgate.blog.order.forms.OrderForm;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,6 +24,7 @@ public class OrderController {
     private final UseCase<DeclineOrderCommand> declineOrderUseCase;
     private final UseCase<ConfirmOrderCommand> confirmOrderUseCase;
     private final OrderQueryService orderQueryService;
+    private final DomainErrorResolver domainErrorResolver = new DomainErrorResolver();
 
     public OrderController(UseCase<CreateOrderCommand> createOrderUseCase, UseCase<UpdateOrderPositionsCommand> updateOrderPositionsUseCase, UseCase<AcceptOrderCommand> acceptOrderUseCase, UseCase<DeclineOrderCommand> declineOrderUseCase, UseCase<ConfirmOrderCommand> confirmOrderUseCase, OrderQueryService orderQueryService) {
         this.createOrderUseCase = createOrderUseCase;
@@ -38,59 +36,71 @@ public class OrderController {
     }
 
     @PostMapping("/orders")
-    ResponseEntity<OrderDto> createOrder(@RequestBody OrderForm orderForm, HttpServletRequest httpServletRequest) {
+    ResponseEntity<?> createOrder(@RequestBody OrderForm orderForm, HttpServletRequest httpServletRequest) {
         final String userId = getCurrentUserId(httpServletRequest);
-        final String orderId = createOrderUseCase.execute(new CreateOrderCommand(userId, orderForm.getPositions()));
 
-        return ResponseEntity
-                .created(URI.create(String.format("/orders/%s", orderId)))
-                .body(orderQueryService.findByOrderId(orderId));
+        return createOrderUseCase.execute(new CreateOrderCommand(userId, orderForm.getPositions()))
+                .fold(
+                        domainErrorResolver::resolve,
+                        orderId -> orderQueryService.findByOrderId(orderId)
+                                .map(orderDto -> ResponseEntity
+                                        .created(URI.create(String.format("/orders/%s", orderId)))
+                                        .body(orderDto)
+                                )
+                                .getOrElse(() -> ResponseEntity
+                                        .notFound()
+                                        .build())
+                );
     }
 
     @GetMapping("/orders/{id}")
-    ResponseEntity<OrderDto> getOrder(@PathVariable String id) {
-        return ResponseEntity.ok().body(orderQueryService.findByOrderId(id));
+    ResponseEntity<?> getOrder(@PathVariable String id) {
+        return findOrder(id);
     }
 
     @PatchMapping("/orders/{id}/update-positions")
-    ResponseEntity<OrderDto> updatePositions(@PathVariable String id, @RequestBody OrderForm orderForm) {
-        final String orderId = updateOrderPositionsUseCase.execute(new UpdateOrderPositionsCommand(id, orderForm.getPositions()));
-        return ResponseEntity.ok().body(orderQueryService.findByOrderId(orderId));
+    ResponseEntity<?> updatePositions(@PathVariable String id, @RequestBody OrderForm orderForm) {
+        return updateOrderPositionsUseCase.execute(new UpdateOrderPositionsCommand(id, orderForm.getPositions()))
+                .fold(
+                        domainErrorResolver::resolve,
+                        orderId -> findOrder(id)
+                );
     }
 
     @PatchMapping("/orders/{id}/accept")
-    ResponseEntity<OrderDto> accept(@PathVariable String id) {
-        final String orderId = acceptOrderUseCase.execute(new AcceptOrderCommand(id));
-        return ResponseEntity.ok().body(orderQueryService.findByOrderId(orderId));
-
+    ResponseEntity<?> accept(@PathVariable String id) {
+        return acceptOrderUseCase.execute(new AcceptOrderCommand(id))
+                .fold(
+                        domainErrorResolver::resolve,
+                        orderId -> findOrder(id)
+                );
     }
 
     @PatchMapping("/orders/{id}/decline")
-    ResponseEntity<OrderDto> decline(@PathVariable String id) {
-        final String orderId = declineOrderUseCase.execute(new DeclineOrderCommand(id));
-        return ResponseEntity.ok().body(orderQueryService.findByOrderId(orderId));
-
+    ResponseEntity<?> decline(@PathVariable String id) {
+        return declineOrderUseCase.execute(new DeclineOrderCommand(id))
+                .fold(
+                        domainErrorResolver::resolve,
+                        orderId -> findOrder(id)
+                );
     }
 
     @PatchMapping("/orders/{id}/confirm")
-    ResponseEntity<OrderDto> confirm(@PathVariable String id) {
-        final String orderId = confirmOrderUseCase.execute(new ConfirmOrderCommand(id));
-        return ResponseEntity.ok().body(orderQueryService.findByOrderId(orderId));
-
+    ResponseEntity<?> confirm(@PathVariable String id) {
+        return confirmOrderUseCase.execute(new ConfirmOrderCommand(id))
+                .fold(
+                        domainErrorResolver::resolve,
+                        orderId -> findOrder(id)
+                );
     }
 
-    @ExceptionHandler(value = OrderStatusException.class)
-    ResponseEntity<ErrorDto> handleOrderStatusException(OrderStatusException e) {
-        return ResponseEntity
-                .badRequest()
-                .body(new ErrorDto(e.getMessage(), e.getOrderId()));
-    }
-
-    @ExceptionHandler(value = OrderNotFoundException.class)
-    ResponseEntity<ErrorDto> handleOrderNotFound(OrderNotFoundException e) {
-        return ResponseEntity
-                .notFound()
-                .build();
+    private ResponseEntity<?> findOrder(String orderId) {
+        return orderQueryService.findByOrderId(orderId)
+                .toEither(DomainError.orderNotFound(orderId))
+                .fold(
+                        domainErrorResolver::resolve,
+                        order -> ResponseEntity.ok().body(order)
+                );
     }
 
     private String getCurrentUserId(HttpServletRequest request) {

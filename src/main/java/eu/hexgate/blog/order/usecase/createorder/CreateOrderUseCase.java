@@ -5,12 +5,14 @@ import eu.hexgate.blog.order.domain.CorrelatedOrderId;
 import eu.hexgate.blog.order.domain.MergedOrderPositions;
 import eu.hexgate.blog.order.domain.draft.DraftOrder;
 import eu.hexgate.blog.order.domain.draft.DraftOrderRepository;
+import eu.hexgate.blog.order.domain.errors.DomainError;
 import eu.hexgate.blog.order.usecase.process.OrderProcessService;
 import eu.hexgate.blog.order.usecase.process.OrderProcessStep;
 import eu.hexgate.blog.order.domain.vip.VipOrder;
 import eu.hexgate.blog.order.domain.vip.VipOrderRepository;
 import eu.hexgate.blog.order.usecase.UseCase;
 import eu.hexgate.blog.user.UserService;
+import io.vavr.control.Either;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,14 +33,14 @@ public class CreateOrderUseCase implements UseCase<CreateOrderCommand> {
     }
 
     @Override
-    public String execute(CreateOrderCommand command) {
+    public Either<DomainError, String> execute(CreateOrderCommand command) {
         final MergedOrderPositions mergedOrderPositions = MergedOrderPositions.of(command.getPositions());
         final AggregateId ownerId = AggregateId.fromString(command.getUserId());
         final OrderProcessStep orderProcessStep = userService.isVip(command.getUserId()) ?
                 createVipOrder(mergedOrderPositions, ownerId) :
                 createDraftOrder(mergedOrderPositions, ownerId);
 
-        return orderProcessService.createAndSave(orderProcessStep);
+        return Either.right(orderProcessService.createAndSave(orderProcessStep));
     }
 
     private OrderProcessStep createVipOrder(MergedOrderPositions mergedOrderPositions, AggregateId ownerId) {

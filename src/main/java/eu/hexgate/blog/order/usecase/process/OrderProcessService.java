@@ -1,7 +1,10 @@
 package eu.hexgate.blog.order.usecase.process;
 
 import eu.hexgate.blog.order.domain.CorrelatedOrderId;
-import eu.hexgate.blog.order.dto.OrderNotFoundException;
+import eu.hexgate.blog.order.domain.errors.DomainError;
+import eu.hexgate.blog.order.domain.errors.DomainErrorCode;
+import io.vavr.control.Either;
+import io.vavr.control.Option;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -23,8 +26,10 @@ public class OrderProcessService {
         return orderProcessStep.getCorrelatedOrderId().getId();
     }
 
-    public OrderProcess findByCorrelatedId(CorrelatedOrderId orderId) {
-        return orderProcessRepository.findNewest(orderId)
-                .orElseThrow(() -> new OrderNotFoundException(orderId));
+    public Either<DomainError, OrderProcess> findByCorrelatedId(CorrelatedOrderId orderId) {
+        return Option.ofOptional(orderProcessRepository.findNewest(orderId))
+                .toEither(() -> DomainError.withCode(DomainErrorCode.ORDER_NOT_FOUND)
+                        .withAdditionalData(orderId.getId())
+                        .build());
     }
 }
