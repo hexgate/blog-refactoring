@@ -2,12 +2,15 @@ package eu.hexgate.blog.order.dto;
 
 public class ErrorDto {
 
-    private final String message;
-    private final String resourceId;
+    private String message;
+    private String resourceId;
 
     public ErrorDto(String message, String resourceId) {
         this.message = message;
         this.resourceId = resourceId;
+    }
+
+    public ErrorDto() {
     }
 
     public String getMessage() {

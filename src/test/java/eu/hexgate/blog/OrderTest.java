@@ -1,17 +1,25 @@
 package eu.hexgate.blog;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import eu.hexgate.blog.order.dto.ErrorDto;
 import eu.hexgate.blog.order.dto.OrderDto;
 import eu.hexgate.blog.order.forms.OrderForm;
 import eu.hexgate.blog.order.forms.OrderPositionForm;
+import eu.hexgate.blog.order.web.client.CreatedOrderDto;
+import eu.hexgate.blog.order.web.client.OrderClient;
+import io.vavr.control.Either;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.List;
 
 import static org.hamcrest.Matchers.*;
@@ -19,17 +27,34 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 public class OrderTest {
 
     private static final String VIP_USER_ID = "1";
     private static final String STANDARD_USER_ID = "2";
 
+    private static final String URL = "http://localhost";
+
     @Autowired
     private MockMvc mockMvc;
 
+    @LocalServerPort
+    private int port;
+
+    private OrderClient orderClient;
+
     private final ObjectMapper objectMapper = new ObjectMapper();
+
+    @BeforeEach
+    public void setup() {
+        orderClient = new OrderClient(URL, port);
+    }
+
+    @Test
+    public void shouldCreateNewVipOrder2() throws InterruptedException, IOException, URISyntaxException {
+        final Either<ErrorDto, CreatedOrderDto> result = orderClient.createOrder(sampleOrderForm(), VIP_USER_ID);
+    }
 
     @Test
     public void shouldCreateNewVipOrder() throws Exception {

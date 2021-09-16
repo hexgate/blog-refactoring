@@ -51,14 +51,14 @@ public class OrderQueryService {
                 .withTax(Tax.asDecimalValue(taxService.gerCurrentTax()))
                 .add(Price.of(shippingService.getCurrentShippingPrice()));
 
-        return new OrderDto(
-                orderProcessRow.getCorrelatedOrderId(),
-                orderProcessRow.getStatus(),
-                basePrice,
-                estimatedPrice.asBigDecimal(),
-                findConfirmedTotalPrice(orderProcessRow).getOrNull(),
-                convertPositions(orderPositions)
-        );
+        return OrderDto.builder()
+                .withId(orderProcessRow.getCorrelatedOrderId())
+                .withStatus(orderProcessRow.getStatus())
+                .withBasePrice(basePrice)
+                .withEstimatedTotalPrice(estimatedPrice.asBigDecimal())
+                .withConfirmedTotalPrice(findConfirmedTotalPrice(orderProcessRow).getOrNull())
+                .withPositions(convertPositions(orderPositions))
+                .build();
     }
 
     private List<OrderPositionRow> findOrderPositions(String orderId) {
