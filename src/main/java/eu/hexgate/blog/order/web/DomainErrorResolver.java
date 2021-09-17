@@ -6,13 +6,14 @@ import eu.hexgate.blog.order.dto.ErrorDto;
 import io.vavr.Function1;
 import io.vavr.collection.HashMap;
 import io.vavr.collection.Map;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 public class DomainErrorResolver {
 
     private static final ResponseEntity<ErrorDto> NOT_FOUND = ResponseEntity
-            .notFound()
-            .build();
+            .status(HttpStatus.NOT_FOUND)
+            .body(new ErrorDto("not found", null));
 
     private static final ResponseEntity<ErrorDto> DEFAULT_ERROR = ResponseEntity
             .badRequest()

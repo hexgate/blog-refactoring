@@ -41,10 +41,7 @@ public class OrderClient {
                 .header(HttpHeaders.CONTENT_TYPE, "application/json")
                 .build();
 
-        final HttpResponse<String> response = client.send(
-                request,
-                HttpResponse.BodyHandlers.ofString()
-        );
+        final HttpResponse<String> response = send(request);
 
 
         if (response.statusCode() == 201) {
@@ -56,11 +53,75 @@ public class OrderClient {
             return Either.right(new CreatedOrderDto(orderDto, location));
         }
 
-        final ErrorDto errorDto = objectMapper.readValue(response.body(), ErrorDto.class);
-        return Either.left(errorDto);
+        return resolveError(response);
+    }
+
+    public Either<ErrorDto, OrderDto> findOrder(String orderId) throws URISyntaxException, IOException, InterruptedException {
+        final HttpRequest request = HttpRequest.newBuilder(new URI(String.format("%s/%s", baseUrl, orderId)))
+                .GET()
+                .build();
+
+        final HttpResponse<String> response = send(request);
+
+        return resolveDefaultResponse(response);
+    }
+
+    public Either<ErrorDto, OrderDto> updateOrderPositions(String orderId, OrderForm orderForm) throws URISyntaxException, IOException, InterruptedException {
+        final String body = objectMapper.writeValueAsString(orderForm);
+        final HttpRequest request = HttpRequest.newBuilder(new URI(String.format("%s/%s/update-positions", baseUrl, orderId)))
+                .method("PATCH", HttpRequest.BodyPublishers.ofString(body))
+                .header(HttpHeaders.CONTENT_TYPE, "application/json")
+                .build();
+
+        final HttpResponse<String> response = send(request);
+
+        return resolveDefaultResponse(response);
+    }
+
+    public Either<ErrorDto, OrderDto> acceptOrder(String orderId) throws URISyntaxException, IOException, InterruptedException {
+        return simpleOperationOnOrder(orderId, "accept");
+    }
+
+    public Either<ErrorDto, OrderDto> declineOrder(String orderId) throws URISyntaxException, IOException, InterruptedException {
+        return simpleOperationOnOrder(orderId, "decline");
+    }
+
+    public Either<ErrorDto, OrderDto> confirmOrder(String orderId) throws URISyntaxException, IOException, InterruptedException {
+        return simpleOperationOnOrder(orderId, "confirm");
+    }
+
+    private Either<ErrorDto, OrderDto> simpleOperationOnOrder(String orderId, String operation) throws URISyntaxException, IOException, InterruptedException {
+        final HttpRequest request = HttpRequest.newBuilder(new URI(String.format("%s/%s/%s", baseUrl, orderId, operation)))
+                .method("PATCH", HttpRequest.BodyPublishers.noBody())
+                .build();
+
+        final HttpResponse<String> response = send(request);
+
+        return resolveDefaultResponse(response);
+    }
+
+    private Either<ErrorDto, OrderDto> resolveDefaultResponse(HttpResponse<String> response) throws JsonProcessingException {
+        if (response.statusCode() == 200) {
+            final OrderDto orderDto = resolveDto(response);
+            return Either.right(orderDto);
+        }
+
+        return resolveError(response);
     }
 
     private OrderDto resolveDto(HttpResponse<String> response) throws JsonProcessingException {
         return objectMapper.readValue(response.body(), OrderDto.class);
+    }
+
+    private <R> Either<ErrorDto, R> resolveError(HttpResponse<String> response) throws JsonProcessingException {
+        final ErrorDto errorDto = objectMapper.readValue(response.body(), ErrorDto.class);
+        return Either.left(errorDto);
+    }
+
+    private HttpResponse<String> send(HttpRequest request) throws IOException, InterruptedException {
+        return client.send(
+                request,
+                HttpResponse.BodyHandlers.ofString()
+        );
     }
 }
